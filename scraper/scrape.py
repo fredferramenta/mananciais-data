@@ -6,9 +6,11 @@ Executa diariamente via GitHub Actions.
 Saída: data/reservatorios.json
 """
 
+import gzip
 import json
 import re
 import sys
+import urllib.request
 from datetime import datetime, timedelta, date
 from pathlib import Path
 
@@ -260,163 +262,187 @@ def fetch_copasa(today_str: str) -> dict | None:
 
 
 # ---------------------------------------------------------------------------
-# CAESB (Distrito Federal) — Playwright
+# CAESB (Distrito Federal) — ADASA PowerBI direto (sem Playwright)
 # ---------------------------------------------------------------------------
+
+# Constantes do relatório público ADASA no Power BI
+_ADASA_REPORT_KEY = "fb208e48-c9bd-4179-9360-e2324dbf3b9b"
+_ADASA_WABI_BASE  = "https://wabi-brazil-south-api.analysis.windows.net"
+_ADASA_MODEL_ID   = 4745099
+
+# Somente as 3 barragens principais monitoradas (dados mais completos e recentes)
+_ADASA_RESERV_MAP = {
+    "BARRAGEM DESCOBERTO":    ("descoberto",  "Descoberto"),
+    "BARRAGEM LAGO PARANOÁ":  ("paranoa",     "Lago Paranoá"),
+    "BARRAGEM SANTA MARIA":   ("santa_maria", "Santa Maria"),
+}
+
+
+def _adasa_request(body: dict) -> dict:
+    """POST ao WABI da ADASA com suporte a gzip."""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120",
+        "Accept": "application/json",
+        "Accept-Encoding": "gzip, deflate",
+        "Content-Type": "application/json;charset=UTF-8",
+        "X-PowerBI-ResourceKey": _ADASA_REPORT_KEY,
+        "Referer": "https://app.powerbi.com/",
+        "Origin": "https://app.powerbi.com",
+    }
+    data = json.dumps(body).encode()
+    req = urllib.request.Request(
+        f"{_ADASA_WABI_BASE}/public/reports/querydata?synchronous=true",
+        data=data, headers=headers,
+    )
+    with urllib.request.urlopen(req, timeout=30) as r:
+        raw = r.read()
+        if raw[:2] == b"\x1f\x8b":
+            raw = gzip.decompress(raw)
+        return json.loads(raw)
+
+
+def _adasa_query_body(row_count: int = 3000) -> dict:
+    return {
+        "queries": [{
+            "Query": {
+                "Commands": [{
+                    "SemanticQueryDataShapeCommand": {
+                        "Query": {
+                            "Version": 2,
+                            "From": [{"Name": "v", "Entity": "view_ReservatoriosMedia11h", "Type": 0}],
+                            "Select": [
+                                {"Column": {"Expression": {"SourceRef": {"Source": "v"}}, "Property": "Nome"},               "Name": "v.Nome"},
+                                {"Column": {"Expression": {"SourceRef": {"Source": "v"}}, "Property": "data"},               "Name": "v.data"},
+                                {"Column": {"Expression": {"SourceRef": {"Source": "v"}}, "Property": "percentualVolumeUtil"},"Name": "v.percentualVolumeUtil"},
+                            ],
+                            "OrderBy": [{
+                                "Direction": 2,
+                                "Expression": {"Column": {"Expression": {"SourceRef": {"Source": "v"}}, "Property": "data"}},
+                            }],
+                        },
+                        "Binding": {
+                            "Primary": {"Groupings": [{"Projections": [0, 1, 2]}]},
+                            "DataReduction": {"DataVolume": 3, "Primary": {"Top": {"Count": row_count}}},
+                            "Version": 1,
+                        },
+                        "ExecutionMetricsKind": 1,
+                    }
+                }]
+            },
+            "QueryId": "q1",
+            "ApplicationContext": {
+                "DatasetId": _ADASA_REPORT_KEY,
+                "Sources": [{"ReportId": _ADASA_REPORT_KEY}],
+            },
+        }],
+        "cancelQueries": [],
+        "modelId": _ADASA_MODEL_ID,
+    }
+
+
+def _parse_adasa_dsr(result: dict) -> list[tuple[str, str, float]]:
+    """
+    Parseia a resposta DSR (Data Shape Result) do PowerBI.
+    Retorna lista de (nome, data_str_YYYY-MM-DD, percentual).
+    """
+    dsr = result["results"][0]["result"]["data"]["dsr"]
+    ds  = dsr["DS"][0]
+    ph  = ds["PH"][0]
+    dm0 = ph["DM0"]
+
+    # Dicionário de nomes (D0) — reservoir name index → string
+    d0 = ds.get("ValueDicts", {}).get("D0", [])
+
+    rows: list[tuple[str, str, float]] = []
+    prev: list = [None, None, None]
+
+    for entry in dm0:
+        c = entry.get("C", [])
+        r = entry.get("R", 0)
+
+        vals = list(prev)
+        ci = 0
+        for col_idx in range(3):
+            if not (r & (1 << col_idx)):
+                if ci < len(c):
+                    vals[col_idx] = c[ci]
+                    ci += 1
+
+        g0, g1, g2 = vals
+        if g0 is not None and g1 is not None and g2 is not None:
+            nome = d0[g0] if d0 and isinstance(g0, int) and g0 < len(d0) else str(g0)
+            dt   = datetime.fromtimestamp(g1 / 1000, tz=__import__("datetime").timezone.utc)
+            rows.append((nome, dt.strftime("%Y-%m-%d"), float(g2)))
+
+        prev = vals
+
+    return rows
+
 
 def fetch_caesb_adasa() -> dict | None:
     """
-    Busca dados dos reservatórios do DF via relatório público ADASA no Power BI.
-    URL: https://app.powerbi.com/view?r=eyJrIjoiZmIyMDhlNDgtYzliZC00MTc5LTkzNjAtZTIzMjRkYmYzYjliIiwidCI6IjczZGJmMTMyLWE0YTQtNDkwMy1hYzI2LWJiMjhmY2Y3NDdhNCJ9
-    As tabelas renderizadas pelo PowerBI têm os valores de Volume Útil (%) por reservatório.
+    Busca dados dos reservatórios do DF diretamente da API PowerBI da ADASA.
+    Não requer Playwright — usa apenas requests/urllib.
+    Retorna: {"volume_pct": float, "reservatorios": [...], "historico_multi": {data: pct}}
     """
     try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
+        result = _adasa_request(_adasa_query_body(row_count=3000))
+        rows   = _parse_adasa_dsr(result)
+    except Exception as e:
+        print(f"  ADASA API erro: {e}", file=sys.stderr)
         return None
 
-    POWERBI_URL = (
-        "https://app.powerbi.com/view?r=eyJrIjoiZmIyMDhlNDgtYzliZC00MTc5LTkzNjAtZT"
-        "IzMjRkYmYzYjliIiwidCI6IjczZGJmMTMyLWE0YTQtNDkwMy1hYzI2LWJiMjhmY2Y3NDdh"
-        "NCJ9"
-    )
-    # Mapeamento de nomes que aparecem no relatório → (slug, nome display)
-    RESERV_MAP = {
-        "descoberto":  ("descoberto",    "Descoberto"),
-        "santa maria": ("santa_maria",   "Santa Maria"),
-        "torto":       ("torto_bananal", "Torto/Bananal"),
-        "bananal":     ("torto_bananal", "Torto/Bananal"),
-        "corumba":     ("corumba_iv",    "Corumbá IV"),
-        "corumbá":     ("corumba_iv",    "Corumbá IV"),
-        "paranoa":     ("paranoa",       "Parananoá"),
-        "paranoá":     ("paranoa",       "Parananoá"),
+    if not rows:
+        print("  ADASA: DSR vazio", file=sys.stderr)
+        return None
+
+    # Filtra apenas os 3 reservatórios principais
+    filtered: list[tuple[str, str, float]] = [
+        (nome, data, pct) for nome, data, pct in rows
+        if nome in _ADASA_RESERV_MAP
+    ]
+
+    if not filtered:
+        print("  ADASA: nenhum reservatório principal encontrado", file=sys.stderr)
+        return None
+
+    # Último valor por reservatório
+    latest_by_reserv: dict[str, tuple[str, float]] = {}
+    for nome, data, pct in filtered:
+        if nome not in latest_by_reserv or data > latest_by_reserv[nome][0]:
+            latest_by_reserv[nome] = (data, pct)
+
+    reservatorios = []
+    for nome_key, (slug, nome_display) in _ADASA_RESERV_MAP.items():
+        if nome_key in latest_by_reserv:
+            _, pct = latest_by_reserv[nome_key]
+            reservatorios.append({"id": slug, "nome": nome_display, "volume_pct": round(pct, 2)})
+
+    if not reservatorios:
+        return None
+
+    main_pct = round(sum(r["volume_pct"] for r in reservatorios) / len(reservatorios), 2)
+    latest_date = max(d for _, (d, _) in latest_by_reserv.items())
+    print(f"  ADASA: {main_pct:.1f}% em {latest_date} — {len(reservatorios)} reservatórios")
+
+    # Histórico do sistema (média diária dos 3 reservatórios disponíveis)
+    # Agrupa por data: {data: [pct1, pct2, ...]}
+    daily: dict[str, list[float]] = {}
+    for nome, data, pct in filtered:
+        daily.setdefault(data, []).append(pct)
+
+    historico_multi: dict[str, float] = {
+        data: round(sum(vals) / len(vals), 2)
+        for data, vals in daily.items()
+        if len(vals) >= 1  # aceita qualquer subconjunto (nem sempre todos os 3 têm dados)
     }
 
-    try:
-        import time
-        api_responses: list[tuple[str,str]] = []
-
-        def capture(response: object) -> None:
-            url_r = response.url
-            if response.status == 200 and "analysis.windows.net" in url_r:
-                try:
-                    text = response.text()
-                    if text and len(text) > 20:
-                        api_responses.append((url_r, text))
-                        print(f"  [PBI] {url_r[-70:]} → {text[:80]}")
-                except Exception:
-                    pass
-
-        with sync_playwright() as pw:
-            browser = pw.chromium.launch(headless=True)
-            ctx = browser.new_context(
-                user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-                viewport={"width": 1400, "height": 900},
-                locale="pt-BR",
-            )
-            page = ctx.new_page()
-            page.on("response", capture)
-            page.goto(POWERBI_URL, wait_until="domcontentloaded", timeout=60000)
-
-            # Aguarda o relatório carregar (PowerBI demora para renderizar)
-            try:
-                page.wait_for_selector("visual-container, .visualContainer, [data-testid='visual-container']", timeout=40000)
-                print("  PowerBI: visual containers detectados")
-            except Exception:
-                print("  PowerBI: timeout aguardando visuais", file=sys.stderr)
-
-            time.sleep(10)  # aguarda dados carregarem nas tabelas
-
-            # Extrai texto de TODAS as células das tabelas renderizadas
-            table_cells = page.evaluate("""
-                () => {
-                    const cells = [];
-                    // Seletores conhecidos do PowerBI para células de tabela
-                    const selectors = [
-                        'div[class*="tableEx"] .cell-interactive .value',
-                        'div[class*="pivotTable"] .cell .value',
-                        '.visual-card text',
-                        '[aria-label] .value',
-                        '.MeasureValue',
-                        'td',
-                        '.tableContainer .value',
-                        '[class*="cell"][class*="value"]',
-                        '.bodyCells .cell .value',
-                        '.pivotTableCellWrap',
-                    ];
-                    for (const sel of selectors) {
-                        document.querySelectorAll(sel).forEach(el => {
-                            const t = el.textContent.trim();
-                            if (t) cells.push(t);
-                        });
-                    }
-                    return [...new Set(cells)].slice(0, 200);
-                }
-            """)
-
-            # Captura o texto completo da página para fallback
-            full_text = page.evaluate("() => document.body.innerText")
-            browser.close()
-
-        print(f"  PowerBI cells: {table_cells[:20]}")
-
-        reservatorios: dict[str, dict] = {}
-
-        # Parse das células: procura padrão data + volume + (referência)
-        # Linha típica: "06.06.26  100,0  (Em branco)"
-        # Título típico: "DESCOBERTO" ou "HISTÓRICO DESCOBERTO"
-        import re as _re
-        def parse_br_float(s: str) -> float | None:
-            try:
-                return float(s.replace(".", "").replace(",", "."))
-            except Exception:
-                return None
-
-        # Parse via texto completo da página
-        if full_text:
-            # Encontra cabeçalhos de reservatório e os valores próximos
-            for nome_key, (slug, nome_display) in RESERV_MAP.items():
-                if slug in {r["id"] for r in reservatorios.values()}:
-                    continue
-                # Procura "DESCOBERTO" e depois "Volume Útil" com valor
-                pat = rf"(?:{nome_key})[^\n]{{0,200}}?(\d{{1,3}}[,.]?\d*)\s*(?:\n|$|\s)"
-                for m in _re.finditer(pat, full_text, _re.IGNORECASE | _re.DOTALL):
-                    v = parse_br_float(m.group(1))
-                    if v is not None and 0.0 <= v <= 105.0:
-                        print(f"  {nome_display}: {v}% (full_text)")
-                        reservatorios[slug] = {"id": slug, "nome": nome_display, "volume_pct": round(v, 2)}
-                        break
-
-        # Procura nas respostas da API PowerBI (formato JSON específico)
-        for resp_url, resp_text in api_responses:
-            if not any(k in resp_url for k in ["querydata", "executeQueries", "results"]):
-                continue
-            try:
-                d = json.loads(resp_text)
-                # PowerBI retorna dados em results[0].result.data.dsr.DS[0].PH[0].DM0
-                rows = None
-                try:
-                    rows = d["results"][0]["result"]["data"]["dsr"]["DS"][0]["PH"][0]["DM0"]
-                except Exception:
-                    pass
-                if rows:
-                    print(f"  PowerBI API rows: {rows[:3]}")
-            except Exception:
-                pass
-
-        result = list(reservatorios.values())
-        if not result:
-            print("  ADASA PowerBI: nenhum reservatório encontrado", file=sys.stderr)
-            return None
-
-        vals = [r["volume_pct"] for r in result]
-        main_pct = round(sum(vals) / len(vals), 2)
-        print(f"  ADASA: {main_pct:.1f}% — {len(result)} reservatórios: {[r['nome'] for r in result]}")
-        return {"volume_pct": main_pct, "reservatorios": result}
-
-    except Exception as e:
-        print(f"Erro ADASA PowerBI: {e}", file=sys.stderr)
-        import traceback; traceback.print_exc()
-        return None
+    return {
+        "volume_pct":      main_pct,
+        "updated_at":      latest_date,
+        "reservatorios":   reservatorios,
+        "historico_multi": historico_multi,
+    }
 
 
 def fetch_caesb() -> dict | None:
@@ -717,20 +743,24 @@ def main():
     # ── CAESB / DF ──────────────────────────────────────────────────────────
     print("\n→ CAESB / ADASA (Distrito Federal)…")
     ex = find_sistema(existing, "df")
-    # Tenta primeiro ADASA PowerBI (fonte oficial com histórico diário)
+    # ADASA PowerBI direto (sem Playwright) — fonte oficial com histórico diário
     caesb = fetch_caesb_adasa()
     if not caesb:
         print("  ADASA falhou — tentando CAESB direto…")
         caesb = fetch_caesb()
     if caesb:
-        hist = update_historico(ex.get("historico", []), {today_str: caesb["volume_pct"]}, today_str)
+        # Usa historico_multi do ADASA se disponível (muitos dias); caso contrário só today
+        hist_new = caesb.get("historico_multi") or {today_str: caesb["volume_pct"]}
+        hist = update_historico(ex.get("historico", []), hist_new, today_str)
+        updated_at = caesb.get("updated_at") or today_str
+        print(f"  DF histórico: {len(hist)} dias")
         output_sistemas.append({
             "id":           "df",
             "abbreviation": "DF",
             "nome":         "Distrito Federal",
-            "empresa":      "CAESB",
+            "empresa":      "CAESB / ADASA",
             "volume_pct":   caesb["volume_pct"],
-            "updated_at":   today_str,
+            "updated_at":   updated_at,
             "reservatorios": caesb["reservatorios"],
             "historico":    hist,
         })
