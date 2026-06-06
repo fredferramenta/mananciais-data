@@ -10,19 +10,14 @@
       "updated_at": "2026-06-06",
       "reservatorios": [
         {
-          "id": "alto_tiete",
-          "nome": "Alto Tietê",
-          "volume_pct": 50.23
-        },
-        {
           "id": "cantareira",
           "nome": "Cantareira",
           "volume_pct": 39.64
         },
         {
-          "id": "cotia",
-          "nome": "Cotia",
-          "volume_pct": 60.55
+          "id": "alto_tiete",
+          "nome": "Alto Tietê",
+          "volume_pct": 50.23
         },
         {
           "id": "guarapiranga",
@@ -30,14 +25,19 @@
           "volume_pct": 76.55
         },
         {
-          "id": "rio_claro",
-          "nome": "Rio Claro",
-          "volume_pct": 64.88
+          "id": "cotia",
+          "nome": "Cotia",
+          "volume_pct": 60.55
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
           "volume_pct": 85.31
+        },
+        {
+          "id": "rio_claro",
+          "nome": "Rio Claro",
+          "volume_pct": 64.88
         },
         {
           "id": "sao_lourenço",
@@ -412,19 +412,76 @@
       "id": "rmbh",
       "nome": "RM Belo Horizonte",
       "empresa": "COPASA",
-      "volume_pct": null,
-      "updated_at": "",
-      "reservatorios": [],
-      "historico": []
+      "volume_pct": 57.5,
+      "updated_at": "2026-06-06",
+      "reservatorios": [
+        {
+          "id": "paraopeba",
+          "nome": "Paraopeba",
+          "volume_pct": 57.5
+        },
+        {
+          "id": "rio_manso",
+          "nome": "Rio Manso",
+          "volume_pct": 57.3
+        },
+        {
+          "id": "serra_azul",
+          "nome": "Serra Azul",
+          "volume_pct": 92.3
+        },
+        {
+          "id": "vargem_das_flores",
+          "nome": "Vargem das Flores",
+          "volume_pct": 92.1
+        }
+      ],
+      "historico": [
+        {
+          "data": "2026-06-06",
+          "volume_pct": 57.5
+        }
+      ]
     },
     {
       "id": "df",
       "nome": "Distrito Federal",
       "empresa": "CAESB",
-      "volume_pct": null,
-      "updated_at": "",
-      "reservatorios": [],
-      "historico": []
+      "volume_pct": 1.5,
+      "updated_at": "2026-06-06",
+      "reservatorios": [
+        {
+          "id": "descoberto",
+          "nome": "Descoberto",
+          "volume_pct": 1.5
+        },
+        {
+          "id": "santa_maria",
+          "nome": "Santa Maria",
+          "volume_pct": 33.3333333333
+        },
+        {
+          "id": "corumbá_iv",
+          "nome": "Corumbá IV",
+          "volume_pct": 16.6666666667
+        },
+        {
+          "id": "torto_bananal",
+          "nome": "Torto/Bananal",
+          "volume_pct": 33.3333333333
+        },
+        {
+          "id": "parananoá",
+          "nome": "Parananoá",
+          "volume_pct": 16.6666666667
+        }
+      ],
+      "historico": [
+        {
+          "data": "2026-06-06",
+          "volume_pct": 1.5
+        }
+      ]
     }
   ]
 }
