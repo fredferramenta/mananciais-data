@@ -2,8 +2,8 @@ name: Atualizar Nível dos Reservatórios
 
 on:
   schedule:
-    # Toda segunda-feira às 8h UTC (5h Brasília)
-    - cron: '0 8 * * 1'
+    # Todo dia às 10h UTC (7h Brasília)
+    - cron: '0 10 * * *'
   workflow_dispatch: # permite disparar manualmente
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install requests playwright
+          pip install requests playwright beautifulsoup4
           playwright install chromium --with-deps
 
       - name: Executar scraper
