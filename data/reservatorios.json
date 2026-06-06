@@ -4,7 +4,6 @@
   "sistemas": [
     {
       "id": "rmsp",
-      "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
       "volume_pct": 51.44,
@@ -411,41 +410,33 @@
     },
     {
       "id": "rmbh",
-      "abbreviation": "BH",
       "nome": "RM Belo Horizonte",
       "empresa": "COPASA",
-      "volume_pct": 82.6,
+      "volume_pct": 57.5,
       "updated_at": "2026-06-06",
       "reservatorios": [
         {
+          "id": "paraopeba",
+          "nome": "Paraopeba",
+          "volume_pct": 57.5
+        },
+        {
           "id": "rio_manso",
           "nome": "Rio Manso",
-          "volume_pct": 95.1
+          "volume_pct": 57.3
         },
         {
           "id": "serra_azul",
           "nome": "Serra Azul",
-          "volume_pct": 57.3
+          "volume_pct": 92.3
         },
         {
           "id": "vargem_das_flores",
           "nome": "Vargem das Flores",
-          "volume_pct": 91.9
+          "volume_pct": 92.1
         }
       ],
       "historico": [
-        {
-          "data": "2026-06-03",
-          "volume_pct": 82.7
-        },
-        {
-          "data": "2026-06-04",
-          "volume_pct": 82.7
-        },
-        {
-          "data": "2026-06-05",
-          "volume_pct": 82.6
-        },
         {
           "data": "2026-06-06",
           "volume_pct": 57.5
@@ -454,22 +445,41 @@
     },
     {
       "id": "df",
-      "abbreviation": "DF",
       "nome": "Distrito Federal",
       "empresa": "CAESB",
-      "volume_pct": 11.0,
+      "volume_pct": 52.4,
       "updated_at": "2026-06-06",
       "reservatorios": [
         {
+          "id": "descoberto",
+          "nome": "Descoberto",
+          "volume_pct": 11.0
+        },
+        {
           "id": "santa_maria",
           "nome": "Santa Maria",
-          "volume_pct": 11.0
+          "volume_pct": 100.0
+        },
+        {
+          "id": "corumbá_iv",
+          "nome": "Corumbá IV",
+          "volume_pct": 21.0
+        },
+        {
+          "id": "torto_bananal",
+          "nome": "Torto/Bananal",
+          "volume_pct": 52.0
+        },
+        {
+          "id": "parananoá",
+          "nome": "Parananoá",
+          "volume_pct": 78.0
         }
       ],
       "historico": [
         {
           "data": "2026-06-06",
-          "volume_pct": 11.0
+          "volume_pct": 52.4
         }
       ]
     }
