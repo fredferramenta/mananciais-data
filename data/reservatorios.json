@@ -1,0 +1,430 @@
+{
+  "updated_at": "2026-06-06",
+  "version": 1,
+  "sistemas": [
+    {
+      "id": "rmsp",
+      "nome": "RM São Paulo",
+      "empresa": "SABESP",
+      "volume_pct": 51.44,
+      "updated_at": "2026-06-06",
+      "reservatorios": [
+        {
+          "id": "alto_tiete",
+          "nome": "Alto Tietê",
+          "volume_pct": 50.23
+        },
+        {
+          "id": "cantareira",
+          "nome": "Cantareira",
+          "volume_pct": 39.64
+        },
+        {
+          "id": "cotia",
+          "nome": "Cotia",
+          "volume_pct": 60.55
+        },
+        {
+          "id": "guarapiranga",
+          "nome": "Guarapiranga",
+          "volume_pct": 76.55
+        },
+        {
+          "id": "rio_claro",
+          "nome": "Rio Claro",
+          "volume_pct": 64.88
+        },
+        {
+          "id": "rio_grande",
+          "nome": "Rio Grande",
+          "volume_pct": 85.31
+        },
+        {
+          "id": "sao_lourenço",
+          "nome": "São Lourenço",
+          "volume_pct": 94.52
+        }
+      ],
+      "historico": [
+        {
+          "data": "2026-03-09",
+          "volume_pct": 50.77
+        },
+        {
+          "data": "2026-03-10",
+          "volume_pct": 51.21
+        },
+        {
+          "data": "2026-03-11",
+          "volume_pct": 51.87
+        },
+        {
+          "data": "2026-03-12",
+          "volume_pct": 52.62
+        },
+        {
+          "data": "2026-03-13",
+          "volume_pct": 53.86
+        },
+        {
+          "data": "2026-03-14",
+          "volume_pct": 54.67
+        },
+        {
+          "data": "2026-03-15",
+          "volume_pct": 55.11
+        },
+        {
+          "data": "2026-03-16",
+          "volume_pct": 55.41
+        },
+        {
+          "data": "2026-03-17",
+          "volume_pct": 55.46
+        },
+        {
+          "data": "2026-03-18",
+          "volume_pct": 55.53
+        },
+        {
+          "data": "2026-03-19",
+          "volume_pct": 55.69
+        },
+        {
+          "data": "2026-03-20",
+          "volume_pct": 56.15
+        },
+        {
+          "data": "2026-03-21",
+          "volume_pct": 56.34
+        },
+        {
+          "data": "2026-03-22",
+          "volume_pct": 56.39
+        },
+        {
+          "data": "2026-03-23",
+          "volume_pct": 56.42
+        },
+        {
+          "data": "2026-03-24",
+          "volume_pct": 56.41
+        },
+        {
+          "data": "2026-03-25",
+          "volume_pct": 56.41
+        },
+        {
+          "data": "2026-03-26",
+          "volume_pct": 56.39
+        },
+        {
+          "data": "2026-03-27",
+          "volume_pct": 56.35
+        },
+        {
+          "data": "2026-03-28",
+          "volume_pct": 56.3
+        },
+        {
+          "data": "2026-03-29",
+          "volume_pct": 56.17
+        },
+        {
+          "data": "2026-03-30",
+          "volume_pct": 56.06
+        },
+        {
+          "data": "2026-03-31",
+          "volume_pct": 55.92
+        },
+        {
+          "data": "2026-04-01",
+          "volume_pct": 55.89
+        },
+        {
+          "data": "2026-04-02",
+          "volume_pct": 56.02
+        },
+        {
+          "data": "2026-04-03",
+          "volume_pct": 56.26
+        },
+        {
+          "data": "2026-04-04",
+          "volume_pct": 56.29
+        },
+        {
+          "data": "2026-04-05",
+          "volume_pct": 56.39
+        },
+        {
+          "data": "2026-04-06",
+          "volume_pct": 56.38
+        },
+        {
+          "data": "2026-04-07",
+          "volume_pct": 56.39
+        },
+        {
+          "data": "2026-04-08",
+          "volume_pct": 56.5
+        },
+        {
+          "data": "2026-04-09",
+          "volume_pct": 56.46
+        },
+        {
+          "data": "2026-04-10",
+          "volume_pct": 56.42
+        },
+        {
+          "data": "2026-04-11",
+          "volume_pct": 56.41
+        },
+        {
+          "data": "2026-04-12",
+          "volume_pct": 56.37
+        },
+        {
+          "data": "2026-04-13",
+          "volume_pct": 56.32
+        },
+        {
+          "data": "2026-04-14",
+          "volume_pct": 56.24
+        },
+        {
+          "data": "2026-04-15",
+          "volume_pct": 56.12
+        },
+        {
+          "data": "2026-04-16",
+          "volume_pct": 55.99
+        },
+        {
+          "data": "2026-04-17",
+          "volume_pct": 55.88
+        },
+        {
+          "data": "2026-04-18",
+          "volume_pct": 55.75
+        },
+        {
+          "data": "2026-04-19",
+          "volume_pct": 55.72
+        },
+        {
+          "data": "2026-04-20",
+          "volume_pct": 55.65
+        },
+        {
+          "data": "2026-04-21",
+          "volume_pct": 55.52
+        },
+        {
+          "data": "2026-04-22",
+          "volume_pct": 55.38
+        },
+        {
+          "data": "2026-04-23",
+          "volume_pct": 55.28
+        },
+        {
+          "data": "2026-04-24",
+          "volume_pct": 55.13
+        },
+        {
+          "data": "2026-04-25",
+          "volume_pct": 54.99
+        },
+        {
+          "data": "2026-04-26",
+          "volume_pct": 54.83
+        },
+        {
+          "data": "2026-04-27",
+          "volume_pct": 54.67
+        },
+        {
+          "data": "2026-04-28",
+          "volume_pct": 54.6
+        },
+        {
+          "data": "2026-04-29",
+          "volume_pct": 54.5
+        },
+        {
+          "data": "2026-04-30",
+          "volume_pct": 54.49
+        },
+        {
+          "data": "2026-05-01",
+          "volume_pct": 54.45
+        },
+        {
+          "data": "2026-05-02",
+          "volume_pct": 54.35
+        },
+        {
+          "data": "2026-05-03",
+          "volume_pct": 54.28
+        },
+        {
+          "data": "2026-05-04",
+          "volume_pct": 54.17
+        },
+        {
+          "data": "2026-05-05",
+          "volume_pct": 54.09
+        },
+        {
+          "data": "2026-05-06",
+          "volume_pct": 53.97
+        },
+        {
+          "data": "2026-05-07",
+          "volume_pct": 53.82
+        },
+        {
+          "data": "2026-05-08",
+          "volume_pct": 53.67
+        },
+        {
+          "data": "2026-05-09",
+          "volume_pct": 53.48
+        },
+        {
+          "data": "2026-05-10",
+          "volume_pct": 53.41
+        },
+        {
+          "data": "2026-05-11",
+          "volume_pct": 53.55
+        },
+        {
+          "data": "2026-05-12",
+          "volume_pct": 53.56
+        },
+        {
+          "data": "2026-05-13",
+          "volume_pct": 53.47
+        },
+        {
+          "data": "2026-05-14",
+          "volume_pct": 53.37
+        },
+        {
+          "data": "2026-05-15",
+          "volume_pct": 53.24
+        },
+        {
+          "data": "2026-05-16",
+          "volume_pct": 53.14
+        },
+        {
+          "data": "2026-05-17",
+          "volume_pct": 53.03
+        },
+        {
+          "data": "2026-05-18",
+          "volume_pct": 52.99
+        },
+        {
+          "data": "2026-05-19",
+          "volume_pct": 52.98
+        },
+        {
+          "data": "2026-05-20",
+          "volume_pct": 52.9
+        },
+        {
+          "data": "2026-05-21",
+          "volume_pct": 52.82
+        },
+        {
+          "data": "2026-05-22",
+          "volume_pct": 52.7
+        },
+        {
+          "data": "2026-05-23",
+          "volume_pct": 52.59
+        },
+        {
+          "data": "2026-05-24",
+          "volume_pct": 52.79
+        },
+        {
+          "data": "2026-05-25",
+          "volume_pct": 52.82
+        },
+        {
+          "data": "2026-05-26",
+          "volume_pct": 52.79
+        },
+        {
+          "data": "2026-05-27",
+          "volume_pct": 52.7
+        },
+        {
+          "data": "2026-05-28",
+          "volume_pct": 52.6
+        },
+        {
+          "data": "2026-05-29",
+          "volume_pct": 52.48
+        },
+        {
+          "data": "2026-05-30",
+          "volume_pct": 52.35
+        },
+        {
+          "data": "2026-05-31",
+          "volume_pct": 52.21
+        },
+        {
+          "data": "2026-06-01",
+          "volume_pct": 52.08
+        },
+        {
+          "data": "2026-06-02",
+          "volume_pct": 51.97
+        },
+        {
+          "data": "2026-06-03",
+          "volume_pct": 51.83
+        },
+        {
+          "data": "2026-06-04",
+          "volume_pct": 51.73
+        },
+        {
+          "data": "2026-06-05",
+          "volume_pct": 51.58
+        },
+        {
+          "data": "2026-06-06",
+          "volume_pct": 51.44
+        }
+      ]
+    },
+    {
+      "id": "rmbh",
+      "nome": "RM Belo Horizonte",
+      "empresa": "COPASA",
+      "volume_pct": null,
+      "updated_at": "",
+      "reservatorios": [],
+      "historico": []
+    },
+    {
+      "id": "df",
+      "nome": "Distrito Federal",
+      "empresa": "CAESB",
+      "volume_pct": null,
+      "updated_at": "",
+      "reservatorios": [],
+      "historico": []
+    }
+  ]
+}
