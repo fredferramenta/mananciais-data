@@ -447,10 +447,41 @@
       "id": "df",
       "nome": "Distrito Federal",
       "empresa": "CAESB",
-      "volume_pct": null,
-      "updated_at": "",
-      "reservatorios": [],
-      "historico": []
+      "volume_pct": 52.4,
+      "updated_at": "2026-06-06",
+      "reservatorios": [
+        {
+          "id": "descoberto",
+          "nome": "Descoberto",
+          "volume_pct": 11.0
+        },
+        {
+          "id": "santa_maria",
+          "nome": "Santa Maria",
+          "volume_pct": 100.0
+        },
+        {
+          "id": "corumbá_iv",
+          "nome": "Corumbá IV",
+          "volume_pct": 21.0
+        },
+        {
+          "id": "torto_bananal",
+          "nome": "Torto/Bananal",
+          "volume_pct": 52.0
+        },
+        {
+          "id": "parananoá",
+          "nome": "Parananoá",
+          "volume_pct": 78.0
+        }
+      ],
+      "historico": [
+        {
+          "data": "2026-06-06",
+          "volume_pct": 52.4
+        }
+      ]
     }
   ]
 }
