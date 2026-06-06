@@ -299,8 +299,14 @@ def fetch_caesb() -> dict | None:
             browser = pw.chromium.launch(headless=True)
             page = browser.new_page()
             page.on("response", capture_ajax)
-            page.goto(url, wait_until="networkidle", timeout=35000)
-            time.sleep(8)  # aguarda todas as requisições AJAX completarem
+            page.goto(url, wait_until="networkidle", timeout=45000)
+            # Scroll para disparar lazy-loading de todos os gráficos
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            time.sleep(4)
+            page.evaluate("window.scrollTo(0, 0)")
+            time.sleep(4)
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
+            time.sleep(10)  # aguarda todas as requisições AJAX completarem
 
             # 1. Tenta ApexCharts global
             chart_series = page.evaluate("""
@@ -409,33 +415,30 @@ def fetch_caesb() -> dict | None:
                         if i < len(all_vals):
                             reservatorios.append({"id": slug, "nome": nome, "volume_pct": all_vals[i]})
 
-            # Fallback: percorre HTML em busca de percentuais em contexto de reservatório
+            # Fallback HTML: busca padrões "NomeReserv ... XX%" mas APENAS
+            # em contexto de nível/volume, não de capacidade/abastecimento
             if not reservatorios:
-                # Busca padrões "Descoberto ... XX%" no HTML completo
+                # Remove trechos de texto que descrevem capacidade do sistema (não nível)
+                html_clean = re.sub(
+                    r'responsável por[^<]{0,200}%|abastecimento[^<]{0,200}%'
+                    r'|capacidade[^<]{0,200}%|produção[^<]{0,200}%',
+                    '', all_html, flags=re.IGNORECASE
+                )
                 for slug, nome in RESERV_NAMES:
                     patterns = [
                         rf"{re.escape(nome)}[^<]{{0,300}}?(\d+(?:[,\.]\d+)?)\s*%",
                         rf"(\d+(?:[,\.]\d+)?)\s*%[^<]{{0,200}}?{re.escape(nome)}",
                     ]
                     for pat in patterns:
-                        m_html = re.search(pat, all_html, re.IGNORECASE | re.DOTALL)
+                        m_html = re.search(pat, html_clean, re.IGNORECASE | re.DOTALL)
                         if m_html:
                             v = parse_pct(m_html.group(1))
-                            if v and 5.0 <= v <= 105.0 and not is_css_frac(v):
+                            if v and 15.0 <= v <= 105.0 and not is_css_frac(v):
                                 reservatorios.append({"id": slug, "nome": nome, "volume_pct": v})
                                 break
 
-            # Último fallback: texto plano completo
-            if not reservatorios:
-                vis_text = re.sub(r"<[^>]+>", " ", all_html)
-                all_vals = clean_pcts(
-                    re.findall(r"(\d+(?:[,\.]\d+)?)\s*%", vis_text), "HTML text fallback"
-                )
-                for i, (slug, nome) in enumerate(RESERV_NAMES):
-                    if i < len(all_vals):
-                        reservatorios.append({"id": slug, "nome": nome, "volume_pct": all_vals[i]})
-
-            if not reservatorios:
+            if len(reservatorios) < 3:
+                print(f"  CAESB: apenas {len(reservatorios)} reservatório(s) encontrado(s) — dados insuficientes.", file=sys.stderr)
                 return None
 
             vals = [r["volume_pct"] for r in reservatorios]
