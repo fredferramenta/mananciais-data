@@ -263,6 +263,162 @@ def fetch_copasa(today_str: str) -> dict | None:
 # CAESB (Distrito Federal) — Playwright
 # ---------------------------------------------------------------------------
 
+def fetch_caesb_adasa() -> dict | None:
+    """
+    Busca dados dos reservatórios do DF via relatório público ADASA no Power BI.
+    URL: https://app.powerbi.com/view?r=eyJrIjoiZmIyMDhlNDgtYzliZC00MTc5LTkzNjAtZTIzMjRkYmYzYjliIiwidCI6IjczZGJmMTMyLWE0YTQtNDkwMy1hYzI2LWJiMjhmY2Y3NDdhNCJ9
+    As tabelas renderizadas pelo PowerBI têm os valores de Volume Útil (%) por reservatório.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return None
+
+    POWERBI_URL = (
+        "https://app.powerbi.com/view?r=eyJrIjoiZmIyMDhlNDgtYzliZC00MTc5LTkzNjAtZT"
+        "IzMjRkYmYzYjliIiwidCI6IjczZGJmMTMyLWE0YTQtNDkwMy1hYzI2LWJiMjhmY2Y3NDdh"
+        "NCJ9"
+    )
+    # Mapeamento de nomes que aparecem no relatório → (slug, nome display)
+    RESERV_MAP = {
+        "descoberto":  ("descoberto",    "Descoberto"),
+        "santa maria": ("santa_maria",   "Santa Maria"),
+        "torto":       ("torto_bananal", "Torto/Bananal"),
+        "bananal":     ("torto_bananal", "Torto/Bananal"),
+        "corumba":     ("corumba_iv",    "Corumbá IV"),
+        "corumbá":     ("corumba_iv",    "Corumbá IV"),
+        "paranoa":     ("paranoa",       "Parananoá"),
+        "paranoá":     ("paranoa",       "Parananoá"),
+    }
+
+    try:
+        import time
+        api_responses: list[tuple[str,str]] = []
+
+        def capture(response: object) -> None:
+            url_r = response.url
+            if response.status == 200 and "analysis.windows.net" in url_r:
+                try:
+                    text = response.text()
+                    if text and len(text) > 20:
+                        api_responses.append((url_r, text))
+                        print(f"  [PBI] {url_r[-70:]} → {text[:80]}")
+                except Exception:
+                    pass
+
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(headless=True)
+            ctx = browser.new_context(
+                user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+                viewport={"width": 1400, "height": 900},
+                locale="pt-BR",
+            )
+            page = ctx.new_page()
+            page.on("response", capture)
+            page.goto(POWERBI_URL, wait_until="domcontentloaded", timeout=60000)
+
+            # Aguarda o relatório carregar (PowerBI demora para renderizar)
+            try:
+                page.wait_for_selector("visual-container, .visualContainer, [data-testid='visual-container']", timeout=40000)
+                print("  PowerBI: visual containers detectados")
+            except Exception:
+                print("  PowerBI: timeout aguardando visuais", file=sys.stderr)
+
+            time.sleep(10)  # aguarda dados carregarem nas tabelas
+
+            # Extrai texto de TODAS as células das tabelas renderizadas
+            table_cells = page.evaluate("""
+                () => {
+                    const cells = [];
+                    // Seletores conhecidos do PowerBI para células de tabela
+                    const selectors = [
+                        'div[class*="tableEx"] .cell-interactive .value',
+                        'div[class*="pivotTable"] .cell .value',
+                        '.visual-card text',
+                        '[aria-label] .value',
+                        '.MeasureValue',
+                        'td',
+                        '.tableContainer .value',
+                        '[class*="cell"][class*="value"]',
+                        '.bodyCells .cell .value',
+                        '.pivotTableCellWrap',
+                    ];
+                    for (const sel of selectors) {
+                        document.querySelectorAll(sel).forEach(el => {
+                            const t = el.textContent.trim();
+                            if (t) cells.push(t);
+                        });
+                    }
+                    return [...new Set(cells)].slice(0, 200);
+                }
+            """)
+
+            # Captura o texto completo da página para fallback
+            full_text = page.evaluate("() => document.body.innerText")
+            browser.close()
+
+        print(f"  PowerBI cells: {table_cells[:20]}")
+
+        reservatorios: dict[str, dict] = {}
+
+        # Parse das células: procura padrão data + volume + (referência)
+        # Linha típica: "06.06.26  100,0  (Em branco)"
+        # Título típico: "DESCOBERTO" ou "HISTÓRICO DESCOBERTO"
+        import re as _re
+        def parse_br_float(s: str) -> float | None:
+            try:
+                return float(s.replace(".", "").replace(",", "."))
+            except Exception:
+                return None
+
+        # Parse via texto completo da página
+        if full_text:
+            # Encontra cabeçalhos de reservatório e os valores próximos
+            for nome_key, (slug, nome_display) in RESERV_MAP.items():
+                if slug in {r["id"] for r in reservatorios.values()}:
+                    continue
+                # Procura "DESCOBERTO" e depois "Volume Útil" com valor
+                pat = rf"(?:{nome_key})[^\n]{{0,200}}?(\d{{1,3}}[,.]?\d*)\s*(?:\n|$|\s)"
+                for m in _re.finditer(pat, full_text, _re.IGNORECASE | _re.DOTALL):
+                    v = parse_br_float(m.group(1))
+                    if v is not None and 0.0 <= v <= 105.0:
+                        print(f"  {nome_display}: {v}% (full_text)")
+                        reservatorios[slug] = {"id": slug, "nome": nome_display, "volume_pct": round(v, 2)}
+                        break
+
+        # Procura nas respostas da API PowerBI (formato JSON específico)
+        for resp_url, resp_text in api_responses:
+            if not any(k in resp_url for k in ["querydata", "executeQueries", "results"]):
+                continue
+            try:
+                d = json.loads(resp_text)
+                # PowerBI retorna dados em results[0].result.data.dsr.DS[0].PH[0].DM0
+                rows = None
+                try:
+                    rows = d["results"][0]["result"]["data"]["dsr"]["DS"][0]["PH"][0]["DM0"]
+                except Exception:
+                    pass
+                if rows:
+                    print(f"  PowerBI API rows: {rows[:3]}")
+            except Exception:
+                pass
+
+        result = list(reservatorios.values())
+        if not result:
+            print("  ADASA PowerBI: nenhum reservatório encontrado", file=sys.stderr)
+            return None
+
+        vals = [r["volume_pct"] for r in result]
+        main_pct = round(sum(vals) / len(vals), 2)
+        print(f"  ADASA: {main_pct:.1f}% — {len(result)} reservatórios: {[r['nome'] for r in result]}")
+        return {"volume_pct": main_pct, "reservatorios": result}
+
+    except Exception as e:
+        print(f"Erro ADASA PowerBI: {e}", file=sys.stderr)
+        import traceback; traceback.print_exc()
+        return None
+
+
 def fetch_caesb() -> dict | None:
     """
     Reservatórios do sistema de abastecimento do DF (CAESB):
@@ -559,9 +715,13 @@ def main():
             })
 
     # ── CAESB / DF ──────────────────────────────────────────────────────────
-    print("\n→ CAESB (Distrito Federal)…")
+    print("\n→ CAESB / ADASA (Distrito Federal)…")
     ex = find_sistema(existing, "df")
-    caesb = fetch_caesb()
+    # Tenta primeiro ADASA PowerBI (fonte oficial com histórico diário)
+    caesb = fetch_caesb_adasa()
+    if not caesb:
+        print("  ADASA falhou — tentando CAESB direto…")
+        caesb = fetch_caesb()
     if caesb:
         hist = update_historico(ex.get("historico", []), {today_str: caesb["volume_pct"]}, today_str)
         output_sistemas.append({
