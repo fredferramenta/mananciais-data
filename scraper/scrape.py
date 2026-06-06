@@ -270,11 +270,11 @@ _ADASA_REPORT_KEY = "fb208e48-c9bd-4179-9360-e2324dbf3b9b"
 _ADASA_WABI_BASE  = "https://wabi-brazil-south-api.analysis.windows.net"
 _ADASA_MODEL_ID   = 4745099
 
-# Somente as 3 barragens principais monitoradas (dados mais completos e recentes)
+# Barragens que compõem o sistema de abastecimento do DF
+# Capacidade em HM³ (fonte: CAESB) — usada para ponderação
 _ADASA_RESERV_MAP = {
-    "BARRAGEM DESCOBERTO":    ("descoberto",  "Descoberto"),
-    "BARRAGEM LAGO PARANOÁ":  ("paranoa",     "Lago Paranoá"),
-    "BARRAGEM SANTA MARIA":   ("santa_maria", "Santa Maria"),
+    "BARRAGEM DESCOBERTO":  ("descoberto",  "Descoberto",  86.00),
+    "BARRAGEM SANTA MARIA": ("santa_maria", "Santa Maria", 84.33),
 }
 
 
@@ -413,29 +413,57 @@ def fetch_caesb_adasa() -> dict | None:
             latest_by_reserv[nome] = (data, pct)
 
     reservatorios = []
-    for nome_key, (slug, nome_display) in _ADASA_RESERV_MAP.items():
+    for nome_key, (slug, nome_display, capacidade_hm3) in _ADASA_RESERV_MAP.items():
         if nome_key in latest_by_reserv:
             _, pct = latest_by_reserv[nome_key]
-            reservatorios.append({"id": slug, "nome": nome_display, "volume_pct": round(pct, 2)})
+            reservatorios.append({
+                "id": slug, "nome": nome_display,
+                "volume_pct": round(pct, 2),
+                "_cap": capacidade_hm3,  # usado na ponderação; removido antes de salvar
+            })
 
     if not reservatorios:
         return None
 
-    main_pct = round(sum(r["volume_pct"] for r in reservatorios) / len(reservatorios), 2)
-    latest_date = max(d for _, (d, _) in latest_by_reserv.items())
-    print(f"  ADASA: {main_pct:.1f}% em {latest_date} — {len(reservatorios)} reservatórios")
+    # Média ponderada pela capacidade (HM³)
+    total_cap = sum(r["_cap"] for r in reservatorios)
+    main_pct  = round(sum(r["volume_pct"] * r["_cap"] for r in reservatorios) / total_cap, 2)
+    latest_date = max(v[0] for v in latest_by_reserv.values())
 
-    # Histórico do sistema (média diária dos 3 reservatórios disponíveis)
-    # Agrupa por data: {data: [pct1, pct2, ...]}
-    daily: dict[str, list[float]] = {}
+    # Remove campo interno antes de retornar
+    for r in reservatorios:
+        del r["_cap"]
+
+    print(f"  ADASA: {main_pct:.1f}% em {latest_date} (ponderado cap. total={total_cap:.2f} HM³)")
+    for r in reservatorios:
+        print(f"    {r['nome']}: {r['volume_pct']}%")
+
+    # Histórico do sistema — média ponderada pela capacidade, por data
+    # {nome: [(data, pct), ...]}
+    by_nome: dict[str, list[tuple[str, float]]] = {}
     for nome, data, pct in filtered:
-        daily.setdefault(data, []).append(pct)
+        by_nome.setdefault(nome, []).append((data, pct))
 
-    historico_multi: dict[str, float] = {
-        data: round(sum(vals) / len(vals), 2)
-        for data, vals in daily.items()
-        if len(vals) >= 1  # aceita qualquer subconjunto (nem sempre todos os 3 têm dados)
-    }
+    # Todas as datas em que AMBOS os reservatórios têm dado
+    dates_by_nome: dict[str, dict[str, float]] = {}
+    for nome, entries in by_nome.items():
+        dates_by_nome[nome] = {d: p for d, p in entries}
+
+    all_dates = set.intersection(*[set(v.keys()) for v in dates_by_nome.values()]) if dates_by_nome else set()
+
+    historico_multi: dict[str, float] = {}
+    for data in all_dates:
+        weighted = sum(
+            dates_by_nome[nome][data] * cap
+            for nome, (_, _, cap) in _ADASA_RESERV_MAP.items()
+            if nome in dates_by_nome and data in dates_by_nome[nome]
+        )
+        cap_sum = sum(
+            cap for nome, (_, _, cap) in _ADASA_RESERV_MAP.items()
+            if nome in dates_by_nome and data in dates_by_nome[nome]
+        )
+        if cap_sum > 0:
+            historico_multi[data] = round(weighted / cap_sum, 2)
 
     return {
         "volume_pct":      main_pct,
