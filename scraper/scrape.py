@@ -314,16 +314,19 @@ def fetch_caesb() -> dict | None:
     try:
         import time
 
-        # Intercepta TODAS as respostas que possam conter dados dos gauges
+        # Intercepta TODAS as respostas JSON/AJAX da página
         ajax_responses: list[str] = []
 
         def capture_response(response: object) -> None:
             url_r = response.url
-            if response.status == 200 and any(k in url_r for k in ["admin-ajax", "graphina", "chart"]):
+            ct = response.headers.get("content-type", "")
+            if response.status == 200 and ("json" in ct or "javascript" in ct or
+               any(k in url_r for k in ["admin-ajax", "graphina", "chart", "api", "dados", "reserv"])):
                 try:
                     text = response.text()
-                    if text and len(text) > 10:
-                        ajax_responses.append(text)
+                    if text and len(text) > 20 and len(text) < 50000:
+                        ajax_responses.append((url_r, text))
+                        print(f"  [NET] {url_r[-80:]} → {text[:120]}")
                 except Exception:
                     pass
 
@@ -404,7 +407,7 @@ def fetch_caesb() -> dict | None:
         # Estratégia A: AJAX Graphina (1 valor por reservatório, em ordem)
         if not reservatorios and ajax_responses:
             all_ajax_vals: list[float] = []
-            for resp_text in ajax_responses:
+            for resp_url, resp_text in ajax_responses:
                 try:
                     aj = json.loads(resp_text)
                     if not isinstance(aj, dict):
