@@ -267,6 +267,13 @@ def fetch_caesb() -> dict | None:
     """
     Reservatórios do sistema de abastecimento do DF (CAESB):
       Descoberto, Santa Maria, Corumbá IV, Torto/Bananal, Parananoá
+
+    Os dados são exibidos em gauge charts do Graphina/ApexCharts carregados via AJAX.
+    Estratégia:
+      1. Intercepta respostas AJAX (admin-ajax.php) do Graphina
+      2. Extrai valores de window.Apex._chartInstances após renderização completa
+      3. Extrai textos de SVG dos gauges renderizados
+    Exige ≥ 3 reservatórios para aceitar os dados (evita dados parciais).
     """
     try:
         from playwright.sync_api import sync_playwright
@@ -283,176 +290,182 @@ def fetch_caesb() -> dict | None:
         ("paranoa",       "Parananoá"),
     ]
 
+    def is_css_frac(v: float) -> bool:
+        for d in range(2, 13):
+            for n in range(1, d):
+                if abs(v - round(100 * n / d, 2)) < 0.06:
+                    return True
+        return False
+
+    def clean_pcts(values: list, label: str) -> list[float]:
+        seen, out = set(), []
+        for v in values:
+            try:
+                f = round(float(str(v).replace(",", ".")), 2)
+                if 5.0 <= f <= 105.0 and not is_css_frac(f) and f not in seen:
+                    seen.add(f)
+                    out.append(f)
+            except Exception:
+                pass
+        if out:
+            print(f"  {label}: {out[:8]}")
+        return out
+
     try:
         import time
 
+        # Intercepta TODAS as respostas que possam conter dados dos gauges
         ajax_responses: list[str] = []
 
-        def capture_ajax(response: object) -> None:
-            if "admin-ajax" in response.url and response.status == 200:
+        def capture_response(response: object) -> None:
+            url_r = response.url
+            if response.status == 200 and any(k in url_r for k in ["admin-ajax", "graphina", "chart"]):
                 try:
-                    ajax_responses.append(response.text())
+                    text = response.text()
+                    if text and len(text) > 10:
+                        ajax_responses.append(text)
                 except Exception:
                     pass
 
         with sync_playwright() as pw:
             browser = pw.chromium.launch(headless=True)
-            page = browser.new_page()
-            page.on("response", capture_ajax)
-            page.goto(url, wait_until="networkidle", timeout=45000)
-            # Scroll para disparar lazy-loading de todos os gráficos
-            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            time.sleep(4)
-            page.evaluate("window.scrollTo(0, 0)")
-            time.sleep(4)
-            page.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
-            time.sleep(10)  # aguarda todas as requisições AJAX completarem
+            ctx = browser.new_context(
+                user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+                viewport={"width": 1280, "height": 900},
+            )
+            page = ctx.new_page()
+            page.on("response", capture_response)
+            page.goto(url, wait_until="domcontentloaded", timeout=45000)
 
-            # 1. Tenta ApexCharts global
-            chart_series = page.evaluate("""
+            # Aguarda ApexCharts aparecer no DOM
+            try:
+                page.wait_for_selector(".apexcharts-canvas", timeout=20000)
+                print("  ApexCharts canvas detectado")
+            except Exception:
+                print("  ApexCharts canvas não detectado", file=sys.stderr)
+
+            # Scroll progressivo para disparar lazy-load de todos os 5 gauges
+            for frac in [0.2, 0.4, 0.6, 0.8, 1.0, 0.0]:
+                page.evaluate(f"window.scrollTo(0, document.body.scrollHeight * {frac})")
+                time.sleep(3)
+
+            # Aguarda mais respostas AJAX
+            time.sleep(8)
+
+            # --- Extração 1: window.Apex._chartInstances (mais confiável) ---
+            apex_vals = page.evaluate("""
                 () => {
                     const out = [];
-                    if (window.Apex && window.Apex._chartInstances) {
-                        for (const inst of Object.values(window.Apex._chartInstances)) {
-                            try { out.push({series: inst.w.config.series, labels: inst.w.config.labels || []}); }
-                            catch(e) {}
-                        }
+                    if (!window.Apex || !window.Apex._chartInstances) return out;
+                    for (const [id, inst] of Object.entries(window.Apex._chartInstances)) {
+                        try {
+                            const cfg = inst.w.config;
+                            const series = cfg.series;
+                            // Gauge/radialBar: series é array de números
+                            if (Array.isArray(series)) {
+                                for (const s of series) {
+                                    if (typeof s === 'number') out.push(s);
+                                    else if (s && typeof s === 'object' && Array.isArray(s.data)) {
+                                        for (const v of s.data) if (typeof v === 'number') out.push(v);
+                                    }
+                                }
+                            }
+                        } catch(e) {}
                     }
                     return out;
                 }
             """)
 
-            # 2. Tenta textos SVG (valores exibidos nos gauges/barras)
-            svg_texts = page.evaluate("""
+            # --- Extração 2: textos SVG de todos os gauges ---
+            svg_vals = page.evaluate("""
                 () => Array.from(document.querySelectorAll(
-                    'svg text, .apexcharts-datalabel, .apexcharts-text, [class*="apexcharts"] text'
-                )).map(e => e.textContent.trim()).filter(t => t.length > 0)
+                    '.apexcharts-datalabel-value, .apexcharts-text, ' +
+                    '.apexcharts-radialbar-label, svg text'
+                )).map(e => e.textContent.trim()).filter(t => /^\\d/.test(t))
             """)
 
-            # 3. Intercepta dados via admin-ajax (Graphina carrega via AJAX)
-            ajax_data = page.evaluate("""
+            # --- Extração 3: atributos data dos containers de chart ---
+            chart_data_attrs = page.evaluate("""
                 () => {
-                    const el = document.querySelector('[data-graphina-chart-data]');
-                    return el ? el.getAttribute('data-graphina-chart-data') : null;
+                    const out = [];
+                    document.querySelectorAll('[data-chart-value],[data-value],[data-percent]')
+                        .forEach(el => out.push(el.dataset.chartValue || el.dataset.value || el.dataset.percent));
+                    return out.filter(Boolean);
                 }
             """)
 
             all_html = page.content()
             browser.close()
 
-            reservatorios, main_pct = [], None
+        print(f"  AJAX respostas: {len(ajax_responses)} | Apex vals: {apex_vals} | SVG texts: {svg_vals[:10]}")
 
-            def is_css_frac(v: float) -> bool:
-                for d in range(2, 13):
-                    for n in range(1, d):
-                        if abs(v - round(100 * n / d, 2)) < 0.06:
-                            return True
-                return False
+        reservatorios: list[dict] = []
 
-            def clean_pcts(values: list, label: str) -> list[float]:
-                seen, out = set(), []
-                for v in values:
-                    try:
-                        f = round(float(str(v).replace(",", ".")), 2)
-                        if 5.0 <= f <= 105.0 and not is_css_frac(f) and f not in seen:
-                            seen.add(f)
-                            out.append(f)
-                    except Exception:
-                        pass
-                if out:
-                    print(f"  {label}: {out[:8]}")
-                return out
+        # Estratégia A: AJAX Graphina (1 valor por reservatório, em ordem)
+        if not reservatorios and ajax_responses:
+            all_ajax_vals: list[float] = []
+            for resp_text in ajax_responses:
+                try:
+                    aj = json.loads(resp_text)
+                    if not isinstance(aj, dict):
+                        continue
+                    # Graphina: {"success":true,"data":{"series":[XX]}} ou {"series":[XX]}
+                    series = None
+                    if "data" in aj and isinstance(aj["data"], dict):
+                        series = aj["data"].get("series") or aj["data"].get("datasets")
+                    if series is None:
+                        series = aj.get("series")
+                    if series and isinstance(series, list):
+                        for s in series:
+                            v = s if isinstance(s, (int, float)) else (s.get("data", [None])[0] if isinstance(s, dict) else None)
+                            if isinstance(v, (int, float)) and 5.0 <= v <= 105.0 and not is_css_frac(v):
+                                all_ajax_vals.append(round(float(v), 2))
+                except Exception:
+                    pass
+            if all_ajax_vals:
+                clean = clean_pcts(all_ajax_vals, "AJAX Graphina")
+                for i, (slug, nome) in enumerate(RESERV_NAMES):
+                    if i < len(clean):
+                        reservatorios.append({"id": slug, "nome": nome, "volume_pct": clean[i]})
 
-            # 0. Tenta dados AJAX interceptados (Graphina carrega via admin-ajax.php)
-            if not reservatorios and ajax_responses:
-                print(f"  AJAX respostas capturadas: {len(ajax_responses)}")
-                for resp_text in ajax_responses:
-                    try:
-                        aj = json.loads(resp_text)
-                        # Graphina retorna {"success": true, "data": {"series": [...]}}
-                        series_data = None
-                        if isinstance(aj, dict):
-                            series_data = (aj.get("data") or {}).get("series") or aj.get("series")
-                        if series_data:
-                            raw_vals = []
-                            for s in (series_data if isinstance(series_data, list) else []):
-                                if isinstance(s, dict):
-                                    for v in (s.get("data") or []):
-                                        if isinstance(v, (int, float)):
-                                            raw_vals.append(v)
-                                elif isinstance(s, (int, float)):
-                                    raw_vals.append(s)
-                            ajax_clean = clean_pcts(raw_vals, "AJAX data")
-                            if ajax_clean:
-                                for i, (slug, nome) in enumerate(RESERV_NAMES):
-                                    if i < len(ajax_clean):
-                                        reservatorios.append({"id": slug, "nome": nome, "volume_pct": ajax_clean[i]})
-                                break
-                    except Exception:
-                        pass
+        # Estratégia B: window.Apex._chartInstances
+        if not reservatorios and apex_vals:
+            clean = clean_pcts(apex_vals, "Apex instances")
+            for i, (slug, nome) in enumerate(RESERV_NAMES):
+                if i < len(clean):
+                    reservatorios.append({"id": slug, "nome": nome, "volume_pct": clean[i]})
 
-            # Tenta ApexCharts primeiro
-            if chart_series:
-                print(f"  ApexCharts: {len(chart_series)} instâncias")
-                raw_vals = []
-                for c in chart_series:
-                    for s in (c.get("series") or []):
-                        data = s.get("data", []) if isinstance(s, dict) else [s]
-                        for v in (data if isinstance(data, list) else []):
-                            if isinstance(v, (int, float)):
-                                raw_vals.append(v)
-                all_vals = clean_pcts(raw_vals, "ApexCharts vals")
-                if all_vals:
-                    for i, (slug, nome) in enumerate(RESERV_NAMES):
-                        if i < len(all_vals):
-                            reservatorios.append({"id": slug, "nome": nome, "volume_pct": all_vals[i]})
+        # Estratégia C: SVG texts
+        if not reservatorios and svg_vals:
+            clean = clean_pcts(svg_vals, "SVG texts")
+            for i, (slug, nome) in enumerate(RESERV_NAMES):
+                if i < len(clean):
+                    reservatorios.append({"id": slug, "nome": nome, "volume_pct": clean[i]})
 
-            # Tenta SVG texts
-            if not reservatorios and svg_texts:
-                all_vals = clean_pcts(svg_texts, "SVG texts")
-                if all_vals:
-                    for i, (slug, nome) in enumerate(RESERV_NAMES):
-                        if i < len(all_vals):
-                            reservatorios.append({"id": slug, "nome": nome, "volume_pct": all_vals[i]})
+        # Estratégia D: data attributes
+        if not reservatorios and chart_data_attrs:
+            clean = clean_pcts(chart_data_attrs, "data attrs")
+            for i, (slug, nome) in enumerate(RESERV_NAMES):
+                if i < len(clean):
+                    reservatorios.append({"id": slug, "nome": nome, "volume_pct": clean[i]})
 
-            # Fallback HTML: busca padrões "NomeReserv ... XX%" mas APENAS
-            # em contexto de nível/volume, não de capacidade/abastecimento
-            if not reservatorios:
-                # Remove trechos de texto que descrevem capacidade do sistema (não nível)
-                html_clean = re.sub(
-                    r'responsável por[^<]{0,200}%|abastecimento[^<]{0,200}%'
-                    r'|capacidade[^<]{0,200}%|produção[^<]{0,200}%',
-                    '', all_html, flags=re.IGNORECASE
-                )
-                for slug, nome in RESERV_NAMES:
-                    patterns = [
-                        rf"{re.escape(nome)}[^<]{{0,300}}?(\d+(?:[,\.]\d+)?)\s*%",
-                        rf"(\d+(?:[,\.]\d+)?)\s*%[^<]{{0,200}}?{re.escape(nome)}",
-                    ]
-                    for pat in patterns:
-                        m_html = re.search(pat, html_clean, re.IGNORECASE | re.DOTALL)
-                        if m_html:
-                            v = parse_pct(m_html.group(1))
-                            if v and 15.0 <= v <= 105.0 and not is_css_frac(v):
-                                reservatorios.append({"id": slug, "nome": nome, "volume_pct": v})
-                                break
+        if len(reservatorios) < 3:
+            print(f"  CAESB: apenas {len(reservatorios)} reservatório(s) — dados insuficientes.", file=sys.stderr)
+            return None
 
-            if len(reservatorios) < 3:
-                print(f"  CAESB: apenas {len(reservatorios)} reservatório(s) encontrado(s) — dados insuficientes.", file=sys.stderr)
-                return None
+        vals = [r["volume_pct"] for r in reservatorios]
+        main_pct = round(sum(vals) / len(vals), 2)
+        if not (5.0 <= main_pct <= 105.0):
+            print(f"  CAESB dados suspeitos (avg={main_pct})", file=sys.stderr)
+            return None
 
-            vals = [r["volume_pct"] for r in reservatorios]
-            main_pct = round(sum(vals) / len(vals), 2)
-
-            if not (5.0 <= main_pct <= 105.0):
-                print(f"  CAESB dados suspeitos (avg={main_pct})", file=sys.stderr)
-                return None
-
-            print(f"  CAESB: {main_pct:.1f}% — {len(reservatorios)} reservatórios")
-            return {"volume_pct": main_pct, "reservatorios": reservatorios}
+        print(f"  CAESB: {main_pct:.1f}% — {len(reservatorios)} reservatórios")
+        return {"volume_pct": main_pct, "reservatorios": reservatorios}
 
     except Exception as e:
         print(f"Erro ao buscar CAESB: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         return None
 
 
