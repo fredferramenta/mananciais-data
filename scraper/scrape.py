@@ -213,50 +213,96 @@ def fetch_caesb() -> dict | None:
 
     url = "https://www.caesb.df.gov.br/barragens-da-caesb/"
     try:
+        import re, time
+
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
             page.goto(url, wait_until="networkidle", timeout=30000)
+            time.sleep(5)  # aguarda gráficos Graphina/ApexCharts renderizarem
 
-            # Aguarda elementos com dados de volume
-            import re
-            import time
-            time.sleep(3)  # aguarda gráficos renderizarem
-            content = page.content()
-            browser.close()
-
-            # Reservatórios conhecidos do DF
             reservatorio_names = ["Descoberto", "Santa Maria", "Corumbá IV", "Torto/Bananal", "Parananoá"]
 
-            pcts = re.findall(r'(\d+[,\.]\d+)\s*%', content)
-            pcts_float = []
-            for p_str in pcts:
-                try:
-                    v = float(p_str.replace(",", "."))
-                    if 1.0 < v < 120.0:
-                        pcts_float.append(v)
-                except Exception:
-                    pass
+            # Tenta extrair séries do ApexCharts via JS
+            chart_data = page.evaluate("""
+                () => {
+                    const results = [];
+                    if (window.Apex && window.Apex._chartInstances) {
+                        for (const inst of Object.values(window.Apex._chartInstances)) {
+                            try {
+                                const series = inst.w.config.series;
+                                results.push(series);
+                            } catch(e) {}
+                        }
+                    }
+                    return results;
+                }
+            """)
 
-            if not pcts_float:
-                return None
-
-            # Volume médio ponderado (estimativa) como valor consolidado
-            main_pct = pcts_float[0] if pcts_float else None
             reservatorios = []
-            for i, nome in enumerate(reservatorio_names):
-                if i < len(pcts_float):
-                    slug = nome.lower().replace(" ", "_").replace("/", "_")
-                    reservatorios.append({
-                        "id": slug,
-                        "nome": nome,
-                        "volume_pct": pcts_float[i]
-                    })
+            main_pct = None
 
-            return {
-                "volume_pct": main_pct,
-                "reservatorios": reservatorios,
-            }
+            if chart_data:
+                print(f"  ApexCharts encontrados: {len(chart_data)}")
+                all_values = []
+                for series in chart_data:
+                    for s in (series if isinstance(series, list) else []):
+                        if isinstance(s, dict):
+                            for v in (s.get("data") or []):
+                                if isinstance(v, (int, float)) and 5.0 <= v <= 110.0:
+                                    all_values.append(round(float(v), 2))
+                        elif isinstance(s, (int, float)) and 5.0 <= s <= 110.0:
+                            all_values.append(round(float(s), 2))
+                if all_values:
+                    for i, nome in enumerate(reservatorio_names):
+                        if i < len(all_values):
+                            slug = nome.lower().replace(" ", "_").replace("/", "_")
+                            reservatorios.append({"id": slug, "nome": nome, "volume_pct": all_values[i]})
+                    vals = [r["volume_pct"] for r in reservatorios]
+                    main_pct = round(sum(vals) / len(vals), 2)
+
+            # Fallback: HTML com filtro rigoroso de artefatos CSS
+            if not reservatorios:
+                content = page.content()
+
+                def is_css_fraction(v: float) -> bool:
+                    """Detecta frações CSS típicas: 1/3=33.33, 1/6=16.67, etc."""
+                    for denom in range(2, 13):
+                        for num in range(1, denom):
+                            if abs(v - round(100 * num / denom, 2)) < 0.05:
+                                return True
+                    return False
+
+                pcts = re.findall(r'(\d+(?:[,\.]\d+)?)\s*%', content)
+                seen, pcts_clean = set(), []
+                for p_str in pcts:
+                    try:
+                        v = round(float(p_str.replace(",", ".")), 2)
+                        if 5.0 < v < 105.0 and not is_css_fraction(v) and v not in seen:
+                            seen.add(v)
+                            pcts_clean.append(v)
+                    except Exception:
+                        pass
+
+                print(f"  Fallback HTML — valores plausíveis: {pcts_clean[:8]}")
+                if len(pcts_clean) >= 2:
+                    for i, nome in enumerate(reservatorio_names):
+                        if i < len(pcts_clean):
+                            slug = nome.lower().replace(" ", "_").replace("/", "_")
+                            reservatorios.append({"id": slug, "nome": nome, "volume_pct": pcts_clean[i]})
+                    vals = [r["volume_pct"] for r in reservatorios]
+                    main_pct = round(sum(vals) / len(vals), 2)
+
+            browser.close()
+
+        # Sanidade: rejeita dados claramente errados
+        if main_pct is None or not (5.0 <= main_pct <= 105.0):
+            print(f"  CAESB: dados suspeitos (main_pct={main_pct}) — ignorando.", file=sys.stderr)
+            return None
+
+        print(f"  CAESB: {main_pct:.1f}% — {len(reservatorios)} reservatórios")
+        return {"volume_pct": main_pct, "reservatorios": reservatorios}
+
     except Exception as e:
         print(f"Erro ao buscar CAESB: {e}", file=sys.stderr)
         return None
