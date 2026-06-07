@@ -429,12 +429,12 @@
         {
           "id": "serra_azul",
           "nome": "Serra Azul",
-          "volume_pct": 57.3
+          "volume_pct": 57.2
         },
         {
           "id": "vargem_das_flores",
           "nome": "Vargem das Flores",
-          "volume_pct": 91.8
+          "volume_pct": 91.5
         }
       ],
       "historico": [
@@ -452,6 +452,10 @@
         },
         {
           "data": "2026-06-06",
+          "volume_pct": 82.5
+        },
+        {
+          "data": "2026-06-07",
           "volume_pct": 82.5
         }
       ]
