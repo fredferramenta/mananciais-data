@@ -254,8 +254,12 @@ def fetch_copasa(today_str: str) -> dict | None:
         if ds and i < len(main_vals) and main_vals[i] is not None:
             historico_multi[ds] = main_vals[i]
 
+    # Data real do dado (última data publicada pela COPASA, não a data do run)
+    data_dado = next((ds for ds in reversed(dates_parsed) if ds is not None), None)
+
     return {
         "volume_pct":      main_pct,
+        "updated_at":      data_dado,   # data real do dado, não today_str
         "reservatorios":   reservatorios,
         "historico_multi": historico_multi,
     }
@@ -746,14 +750,16 @@ def main():
     copasa = fetch_copasa(today_str)
     if copasa:
         hist = update_historico(ex.get("historico", []), copasa["historico_multi"], today_str)
-        print(f"  Sistema Paraopeba: {copasa['volume_pct']:.1f}% | {len(hist)} dias histórico")
+        # updated_at = data real do dado da COPASA (não a data do run)
+        bh_updated = copasa.get("updated_at") or today_str
+        print(f"  Sistema Paraopeba: {copasa['volume_pct']:.1f}% em {bh_updated} | {len(hist)} dias histórico")
         output_sistemas.append({
             "id":           "rmbh",
             "abbreviation": "BH",
             "nome":         "RM Belo Horizonte",
             "empresa":      "COPASA",
             "volume_pct":   copasa["volume_pct"],
-            "updated_at":   today_str,
+            "updated_at":   bh_updated,
             "reservatorios": copasa["reservatorios"],
             "historico":    hist,
         })
