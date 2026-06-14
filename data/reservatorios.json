@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-13",
+  "updated_at": "2026-06-14",
   "version": 1,
   "sistemas": [
     {
@@ -7,43 +7,43 @@
       "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
-      "volume_pct": 50.89,
-      "updated_at": "2026-06-13",
+      "volume_pct": 50.87,
+      "updated_at": "2026-06-14",
       "reservatorios": [
         {
           "id": "cantareira",
           "nome": "Cantareira",
-          "volume_pct": 39.31
+          "volume_pct": 39.37
         },
         {
           "id": "alto_tiete",
           "nome": "Alto Tietê",
-          "volume_pct": 49.51
+          "volume_pct": 49.4
         },
         {
           "id": "guarapiranga",
           "nome": "Guarapiranga",
-          "volume_pct": 75.77
+          "volume_pct": 75.73
         },
         {
           "id": "cotia",
           "nome": "Cotia",
-          "volume_pct": 60.68
+          "volume_pct": 60.53
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
-          "volume_pct": 84.38
+          "volume_pct": 84.21
         },
         {
           "id": "rio_claro",
           "nome": "Rio Claro",
-          "volume_pct": 64.3
+          "volume_pct": 64.2
         },
         {
           "id": "sao_lourenço",
           "nome": "São Lourenço",
-          "volume_pct": 93.53
+          "volume_pct": 93.35
         }
       ],
       "historico": [
@@ -434,6 +434,10 @@
         {
           "data": "2026-06-13",
           "volume_pct": 50.89
+        },
+        {
+          "data": "2026-06-14",
+          "volume_pct": 50.87
         }
       ]
     },
@@ -442,13 +446,13 @@
       "abbreviation": "BH",
       "nome": "RM Belo Horizonte",
       "empresa": "COPASA",
-      "volume_pct": 82.2,
-      "updated_at": "2026-06-12",
+      "volume_pct": 82.3,
+      "updated_at": "2026-06-13",
       "reservatorios": [
         {
           "id": "rio_manso",
           "nome": "Rio Manso",
-          "volume_pct": 94.9
+          "volume_pct": 95.1
         },
         {
           "id": "serra_azul",
@@ -501,6 +505,10 @@
         {
           "data": "2026-06-12",
           "volume_pct": 82.2
+        },
+        {
+          "data": "2026-06-13",
+          "volume_pct": 82.3
         }
       ]
     },
@@ -524,10 +532,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-06-13",
-          "volume_pct": 79.91
-        },
         {
           "data": "2024-06-14",
           "volume_pct": 79.64
