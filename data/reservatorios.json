@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-18",
+  "updated_at": "2026-06-19",
   "version": 1,
   "sistemas": [
     {
@@ -7,43 +7,43 @@
       "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
-      "volume_pct": 50.95,
-      "updated_at": "2026-06-18",
+      "volume_pct": 50.83,
+      "updated_at": "2026-06-19",
       "reservatorios": [
         {
           "id": "cantareira",
           "nome": "Cantareira",
-          "volume_pct": 39.32
+          "volume_pct": 39.21
         },
         {
           "id": "alto_tiete",
           "nome": "Alto Tietê",
-          "volume_pct": 49.36
+          "volume_pct": 49.26
         },
         {
           "id": "guarapiranga",
           "nome": "Guarapiranga",
-          "volume_pct": 76.34
+          "volume_pct": 76.13
         },
         {
           "id": "cotia",
           "nome": "Cotia",
-          "volume_pct": 60.89
+          "volume_pct": 60.8
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
-          "volume_pct": 84.52
+          "volume_pct": 84.37
         },
         {
           "id": "rio_claro",
           "nome": "Rio Claro",
-          "volume_pct": 65.29
+          "volume_pct": 64.91
         },
         {
           "id": "sao_lourenço",
           "nome": "São Lourenço",
-          "volume_pct": 94.26
+          "volume_pct": 94.14
         }
       ],
       "historico": [
@@ -454,6 +454,10 @@
         {
           "data": "2026-06-18",
           "volume_pct": 50.95
+        },
+        {
+          "data": "2026-06-19",
+          "volume_pct": 50.83
         }
       ]
     },
@@ -462,8 +466,8 @@
       "abbreviation": "BH",
       "nome": "RM Belo Horizonte",
       "empresa": "COPASA",
-      "volume_pct": 82.2,
-      "updated_at": "2026-06-18",
+      "volume_pct": 82.1,
+      "updated_at": "2026-06-19",
       "reservatorios": [
         {
           "id": "rio_manso",
@@ -478,7 +482,7 @@
         {
           "id": "vargem_das_flores",
           "nome": "Vargem das Flores",
-          "volume_pct": 90.0
+          "volume_pct": 89.8
         }
       ],
       "historico": [
@@ -545,6 +549,10 @@
         {
           "data": "2026-06-18",
           "volume_pct": 82.2
+        },
+        {
+          "data": "2026-06-19",
+          "volume_pct": 82.1
         }
       ]
     },
@@ -568,10 +576,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-06-18",
-          "volume_pct": 79.1
-        },
         {
           "data": "2024-06-19",
           "volume_pct": 78.97
