@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-26",
+  "updated_at": "2026-06-27",
   "version": 1,
   "sistemas": [
     {
@@ -495,7 +495,7 @@
       "nome": "RM Belo Horizonte",
       "empresa": "COPASA",
       "volume_pct": 81.6,
-      "updated_at": "2026-06-25",
+      "updated_at": "2026-06-26",
       "reservatorios": [
         {
           "id": "rio_manso",
@@ -505,12 +505,12 @@
         {
           "id": "serra_azul",
           "nome": "Serra Azul",
-          "volume_pct": 56.4
+          "volume_pct": 56.3
         },
         {
           "id": "vargem_das_flores",
           "nome": "Vargem das Flores",
-          "volume_pct": 88.8
+          "volume_pct": 88.5
         }
       ],
       "historico": [
@@ -605,6 +605,10 @@
         {
           "data": "2026-06-25",
           "volume_pct": 81.6
+        },
+        {
+          "data": "2026-06-26",
+          "volume_pct": 81.6
         }
       ]
     },
@@ -628,10 +632,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-06-26",
-          "volume_pct": 78.23
-        },
         {
           "data": "2024-06-27",
           "volume_pct": 78.09
