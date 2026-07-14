@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-13",
+  "updated_at": "2026-07-14",
   "version": 1,
   "sistemas": [
     {
@@ -768,10 +768,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-07-13",
-          "volume_pct": 76.26
-        },
         {
           "data": "2024-07-14",
           "volume_pct": 76.17
