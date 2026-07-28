@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-27",
+  "updated_at": "2026-07-28",
   "version": 1,
   "sistemas": [
     {
@@ -880,10 +880,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-07-27",
-          "volume_pct": 73.29
-        },
         {
           "data": "2024-07-28",
           "volume_pct": 73.16
