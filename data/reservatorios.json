@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-10",
+  "updated_at": "2026-08-11",
   "version": 1,
   "sistemas": [
     {
@@ -7,43 +7,43 @@
       "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
-      "volume_pct": 46.63,
-      "updated_at": "2026-08-09",
+      "volume_pct": 46.55,
+      "updated_at": "2026-08-10",
       "reservatorios": [
         {
           "id": "cantareira",
           "nome": "Cantareira",
-          "volume_pct": 35.61
+          "volume_pct": 35.59
         },
         {
           "id": "alto_tiete",
           "nome": "Alto Tietê",
-          "volume_pct": 45.64
+          "volume_pct": 45.57
         },
         {
           "id": "guarapiranga",
           "nome": "Guarapiranga",
-          "volume_pct": 73.53
+          "volume_pct": 73.28
         },
         {
           "id": "cotia",
           "nome": "Cotia",
-          "volume_pct": 59.58
+          "volume_pct": 59.4
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
-          "volume_pct": 79.35
+          "volume_pct": 79.24
         },
         {
           "id": "rio_claro",
           "nome": "Rio Claro",
-          "volume_pct": 49.83
+          "volume_pct": 49.46
         },
         {
           "id": "sao_lourenço",
           "nome": "São Lourenço",
-          "volume_pct": 78.57
+          "volume_pct": 78.11
         }
       ],
       "historico": [
@@ -662,6 +662,10 @@
         {
           "data": "2026-08-09",
           "volume_pct": 46.63
+        },
+        {
+          "data": "2026-08-10",
+          "volume_pct": 46.55
         }
       ]
     },
@@ -670,23 +674,23 @@
       "abbreviation": "BH",
       "nome": "RM Belo Horizonte",
       "empresa": "COPASA",
-      "volume_pct": 76.0,
-      "updated_at": "2026-08-09",
+      "volume_pct": 75.8,
+      "updated_at": "2026-08-10",
       "reservatorios": [
         {
           "id": "rio_manso",
           "nome": "Rio Manso",
-          "volume_pct": 89.8
+          "volume_pct": 89.6
         },
         {
           "id": "serra_azul",
           "nome": "Serra Azul",
-          "volume_pct": 50.7
+          "volume_pct": 50.5
         },
         {
           "id": "vargem_das_flores",
           "nome": "Vargem das Flores",
-          "volume_pct": 80.1
+          "volume_pct": 79.8
         }
       ],
       "historico": [
@@ -961,6 +965,10 @@
         {
           "data": "2026-08-09",
           "volume_pct": 76.0
+        },
+        {
+          "data": "2026-08-10",
+          "volume_pct": 75.8
         }
       ]
     },
@@ -984,10 +992,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-08-10",
-          "volume_pct": 70.65
-        },
         {
           "data": "2024-08-11",
           "volume_pct": 70.47
