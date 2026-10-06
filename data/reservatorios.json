@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-05",
+  "updated_at": "2026-10-06",
   "version": 1,
   "sistemas": [
     {
@@ -7,43 +7,43 @@
       "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
-      "volume_pct": 55.07,
-      "updated_at": "2026-10-05",
+      "volume_pct": 55.21,
+      "updated_at": "2026-10-06",
       "reservatorios": [
         {
           "id": "cantareira",
           "nome": "Cantareira",
-          "volume_pct": 41.16
+          "volume_pct": 41.42
         },
         {
           "id": "alto_tiete",
           "nome": "Alto Tietê",
-          "volume_pct": 54.29
+          "volume_pct": 54.35
         },
         {
           "id": "guarapiranga",
           "nome": "Guarapiranga",
-          "volume_pct": 95.08
+          "volume_pct": 95.02
         },
         {
           "id": "cotia",
           "nome": "Cotia",
-          "volume_pct": 91.27
+          "volume_pct": 91.57
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
-          "volume_pct": 94.86
+          "volume_pct": 95.47
         },
         {
           "id": "rio_claro",
           "nome": "Rio Claro",
-          "volume_pct": 55.71
+          "volume_pct": 55.58
         },
         {
           "id": "sao_lourenço",
           "nome": "São Lourenço",
-          "volume_pct": 79.5
+          "volume_pct": 78.62
         }
       ],
       "historico": [
@@ -890,6 +890,10 @@
         {
           "data": "2026-10-05",
           "volume_pct": 55.07
+        },
+        {
+          "data": "2026-10-06",
+          "volume_pct": 55.21
         }
       ]
     },
@@ -1272,10 +1276,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-10-05",
-          "volume_pct": 54.55
-        },
         {
           "data": "2024-10-06",
           "volume_pct": 54.26
