@@ -133,6 +133,25 @@ def build_sabesp_history(existing_historico: list[dict], today_str: str) -> list
         current += timedelta(days=1)
 
     cutoff = today_dt - timedelta(days=HISTORY_DAYS)
+
+    # Preenchimento retroativo até completar HISTORY_DAYS (permite comparar com o ano anterior).
+    # Em lotes para não sobrecarregar a API; SABESP_BACKFILL ajusta o lote numa execução manual.
+    import os
+    max_back = int(os.environ.get("SABESP_BACKFILL", "60"))
+    current = min(datetime.strptime(d, "%Y-%m-%d").date() for d in existing_map) - timedelta(days=1) \
+        if existing_map else today_dt
+    tentativas = 0
+    while current >= cutoff and tentativas < max_back:
+        day_str = current.strftime("%Y-%m-%d")
+        try:
+            pct = fetch_sabesp_day(day_str).get(SABESP_SISTEMA_INTEGRADO_ID)
+            if pct is not None:
+                existing_map[day_str] = pct
+        except Exception as e:
+            print(f"  skip {day_str}: {e}", file=sys.stderr)
+        tentativas += 1
+        current -= timedelta(days=1)
+
     return [
         {"data": d, "volume_pct": v}
         for d, v in sorted(existing_map.items())
