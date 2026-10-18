@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
 
     steps:
       - name: Checkout repositório
@@ -44,3 +45,31 @@ jobs:
       - name: Sem alterações
         if: steps.check_changes.outputs.changed != 'true'
         run: echo "Nenhuma alteração detectada nos dados."
+
+      # Alerta de defasagem: abre (ou comenta) uma issue quando algum sistema para de atualizar
+      # e fecha a issue automaticamente quando tudo volta ao normal.
+      - name: Verificar frescor dos dados
+        id: frescor
+        run: python scraper/check_staleness.py
+
+      - name: Abrir/atualizar issue de defasagem
+        if: steps.frescor.outputs.stale == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          N=$(gh issue list --label dados-defasados --state open --json number -q '.[0].number')
+          if [ -z "$N" ]; then
+            gh label create dados-defasados --color d93f0b --force >/dev/null
+            gh issue create --title "Dados de reservatórios defasados" --label dados-defasados --body-file /tmp/relatorio_frescor.md
+          else
+            gh issue comment "$N" --body-file /tmp/relatorio_frescor.md
+          fi
+
+      - name: Fechar issue de defasagem
+        if: steps.frescor.outputs.stale == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for N in $(gh issue list --label dados-defasados --state open --json number -q '.[].number'); do
+            gh issue close "$N" --comment "Todos os sistemas voltaram a atualizar."
+          done
