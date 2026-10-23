@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-22",
+  "updated_at": "2026-10-23",
   "version": 1,
   "sistemas": [
     {
@@ -7,50 +7,46 @@
       "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
-      "volume_pct": 57.96,
-      "updated_at": "2026-10-22",
+      "volume_pct": 57.9,
+      "updated_at": "2026-10-23",
       "reservatorios": [
         {
           "id": "cantareira",
           "nome": "Cantareira",
-          "volume_pct": 45.98
+          "volume_pct": 46.09
         },
         {
           "id": "alto_tiete",
           "nome": "Alto Tietê",
-          "volume_pct": 56.64
+          "volume_pct": 56.62
         },
         {
           "id": "guarapiranga",
           "nome": "Guarapiranga",
-          "volume_pct": 93.69
+          "volume_pct": 93.18
         },
         {
           "id": "cotia",
           "nome": "Cotia",
-          "volume_pct": 102.51
+          "volume_pct": 102.56
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
-          "volume_pct": 97.42
+          "volume_pct": 96.98
         },
         {
           "id": "rio_claro",
           "nome": "Rio Claro",
-          "volume_pct": 55.89
+          "volume_pct": 55.62
         },
         {
           "id": "sao_lourenço",
           "nome": "São Lourenço",
-          "volume_pct": 72.03
+          "volume_pct": 71.2
         }
       ],
       "historico": [
-        {
-          "data": "2024-10-22",
-          "volume_pct": 44.8
-        },
         {
           "data": "2024-10-23",
           "volume_pct": 44.66
@@ -2970,6 +2966,10 @@
         {
           "data": "2026-10-22",
           "volume_pct": 57.96
+        },
+        {
+          "data": "2026-10-23",
+          "volume_pct": 57.9
         }
       ]
     },
@@ -3364,10 +3364,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-10-22",
-          "volume_pct": 52.29
-        },
         {
           "data": "2024-10-23",
           "volume_pct": 52.88
