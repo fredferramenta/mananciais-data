@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23",
+  "updated_at": "2026-10-24",
   "version": 1,
   "sistemas": [
     {
@@ -7,50 +7,46 @@
       "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
-      "volume_pct": 57.9,
-      "updated_at": "2026-10-23",
+      "volume_pct": 57.87,
+      "updated_at": "2026-10-24",
       "reservatorios": [
         {
           "id": "cantareira",
           "nome": "Cantareira",
-          "volume_pct": 46.09
+          "volume_pct": 46.22
         },
         {
           "id": "alto_tiete",
           "nome": "Alto Tietê",
-          "volume_pct": 56.62
+          "volume_pct": 56.58
         },
         {
           "id": "guarapiranga",
           "nome": "Guarapiranga",
-          "volume_pct": 93.18
+          "volume_pct": 93.3
         },
         {
           "id": "cotia",
           "nome": "Cotia",
-          "volume_pct": 102.56
+          "volume_pct": 102.54
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
-          "volume_pct": 96.98
+          "volume_pct": 96.42
         },
         {
           "id": "rio_claro",
           "nome": "Rio Claro",
-          "volume_pct": 55.62
+          "volume_pct": 55.37
         },
         {
           "id": "sao_lourenço",
           "nome": "São Lourenço",
-          "volume_pct": 71.2
+          "volume_pct": 69.95
         }
       ],
       "historico": [
-        {
-          "data": "2024-10-23",
-          "volume_pct": 44.66
-        },
         {
           "data": "2024-10-24",
           "volume_pct": 44.7
@@ -2970,6 +2966,10 @@
         {
           "data": "2026-10-23",
           "volume_pct": 57.9
+        },
+        {
+          "data": "2026-10-24",
+          "volume_pct": 57.87
         }
       ]
     },
@@ -3364,10 +3364,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-10-23",
-          "volume_pct": 52.88
-        },
         {
           "data": "2024-10-24",
           "volume_pct": 52.9
