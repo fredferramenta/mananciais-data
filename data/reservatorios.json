@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-10-29",
   "version": 1,
   "sistemas": [
     {
@@ -7,50 +7,46 @@
       "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
-      "volume_pct": 61.3,
-      "updated_at": "2026-10-28",
+      "volume_pct": 61.34,
+      "updated_at": "2026-10-29",
       "reservatorios": [
         {
           "id": "cantareira",
           "nome": "Cantareira",
-          "volume_pct": 49.78
+          "volume_pct": 50.06
         },
         {
           "id": "alto_tiete",
           "nome": "Alto Tietê",
-          "volume_pct": 59.23
+          "volume_pct": 59.46
         },
         {
           "id": "guarapiranga",
           "nome": "Guarapiranga",
-          "volume_pct": 96.17
+          "volume_pct": 95.16
         },
         {
           "id": "cotia",
           "nome": "Cotia",
-          "volume_pct": 103.67
+          "volume_pct": 103.44
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
-          "volume_pct": 99.88
+          "volume_pct": 99.44
         },
         {
           "id": "rio_claro",
           "nome": "Rio Claro",
-          "volume_pct": 60.89
+          "volume_pct": 60.79
         },
         {
           "id": "sao_lourenço",
           "nome": "São Lourenço",
-          "volume_pct": 77.93
+          "volume_pct": 76.9
         }
       ],
       "historico": [
-        {
-          "data": "2024-10-28",
-          "volume_pct": 45.34
-        },
         {
           "data": "2024-10-29",
           "volume_pct": 45.24
@@ -2970,6 +2966,10 @@
         {
           "data": "2026-10-28",
           "volume_pct": 61.3
+        },
+        {
+          "data": "2026-10-29",
+          "volume_pct": 61.34
         }
       ]
     },
@@ -3364,10 +3364,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-10-28",
-          "volume_pct": 53.14
-        },
         {
           "data": "2024-10-29",
           "volume_pct": 53.01
