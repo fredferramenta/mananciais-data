@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-29",
+  "updated_at": "2026-10-30",
   "version": 1,
   "sistemas": [
     {
@@ -7,50 +7,46 @@
       "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
-      "volume_pct": 61.34,
-      "updated_at": "2026-10-29",
+      "volume_pct": 61.75,
+      "updated_at": "2026-10-30",
       "reservatorios": [
         {
           "id": "cantareira",
           "nome": "Cantareira",
-          "volume_pct": 50.06
+          "volume_pct": 50.71
         },
         {
           "id": "alto_tiete",
           "nome": "Alto Tietê",
-          "volume_pct": 59.46
+          "volume_pct": 59.93
         },
         {
           "id": "guarapiranga",
           "nome": "Guarapiranga",
-          "volume_pct": 95.16
+          "volume_pct": 94.94
         },
         {
           "id": "cotia",
           "nome": "Cotia",
-          "volume_pct": 103.44
+          "volume_pct": 103.72
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
-          "volume_pct": 99.44
+          "volume_pct": 99.29
         },
         {
           "id": "rio_claro",
           "nome": "Rio Claro",
-          "volume_pct": 60.79
+          "volume_pct": 60.99
         },
         {
           "id": "sao_lourenço",
           "nome": "São Lourenço",
-          "volume_pct": 76.9
+          "volume_pct": 76.19
         }
       ],
       "historico": [
-        {
-          "data": "2024-10-29",
-          "volume_pct": 45.24
-        },
         {
           "data": "2024-10-30",
           "volume_pct": 45.12
@@ -2970,6 +2966,10 @@
         {
           "data": "2026-10-29",
           "volume_pct": 61.34
+        },
+        {
+          "data": "2026-10-30",
+          "volume_pct": 61.75
         }
       ]
     },
@@ -3364,10 +3364,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-10-29",
-          "volume_pct": 53.01
-        },
         {
           "data": "2024-10-30",
           "volume_pct": 52.97
