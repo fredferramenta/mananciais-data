@@ -61,11 +61,37 @@ def update_historico(existing: list[dict], new_entries: dict[str, float], today_
     m.update({d: round(v, 2) for d, v in new_entries.items() if v is not None})
     today_dt = datetime.strptime(today_str, "%Y-%m-%d").date()
     cutoff   = today_dt - timedelta(days=HISTORY_DAYS)
-    return [
+    serie = [
         {"data": d, "volume_pct": v}
         for d, v in sorted(m.items())
         if datetime.strptime(d, "%Y-%m-%d").date() >= cutoff
     ]
+    return remover_picos(serie)
+
+
+SALTO_MAX_PP = 12.0   # um sistema de abastecimento não varia isso em poucos dias
+
+
+def remover_picos(serie: list[dict]) -> list[dict]:
+    """
+    Descarta pontos isolados fisicamente impossíveis (erro na fonte), como o registro de
+    28/09/2026 da ADASA que derrubou o DF de 84% para 60% em um dia.
+    Um ponto sai quando difere mais de SALTO_MAX_PP do vizinho anterior (até 7 dias antes)
+    e também do seguinte — ou, sendo o último, só do anterior.
+    """
+    def dias(a: str, b: str) -> int:
+        return abs((datetime.strptime(b, "%Y-%m-%d") - datetime.strptime(a, "%Y-%m-%d")).days)
+
+    out: list[dict] = []
+    for i, p in enumerate(serie):
+        ant = out[-1] if out else None
+        prox = serie[i + 1] if i + 1 < len(serie) else None
+        if ant and dias(ant["data"], p["data"]) <= 7 and abs(p["volume_pct"] - ant["volume_pct"]) > SALTO_MAX_PP:
+            if prox is None or abs(p["volume_pct"] - prox["volume_pct"]) > SALTO_MAX_PP:
+                print(f"  ponto descartado (salto impossível): {p['data']} = {p['volume_pct']}%", file=sys.stderr)
+                continue
+        out.append(p)
+    return out
 
 
 def parse_copasa_date(header: str, reference_year: int) -> str | None:
@@ -288,10 +314,15 @@ def fetch_copasa(today_str: str) -> dict | None:
 # CAESB (Distrito Federal) — ADASA PowerBI direto (sem Playwright)
 # ---------------------------------------------------------------------------
 
-# Constantes do relatório público ADASA no Power BI
-_ADASA_REPORT_KEY = "fb208e48-c9bd-4179-9360-e2324dbf3b9b"
+# Relatórios públicos da ADASA no Power BI que expõem a view de reservatórios.
+# A ADASA já trocou de relatório sem aviso (o antigo parou de atualizar em 28/09/2026),
+# então consultamos todos e ficamos com o que tiver o dado mais recente.
+# O modelId de cada um é descoberto em tempo de execução.
+_ADASA_REPORT_KEYS = [
+    "a45af2f4-7b17-471a-8595-5c1d57be9361",  # "Niveis Reservatórios DG" (atual)
+    "fb208e48-c9bd-4179-9360-e2324dbf3b9b",  # "Sirh DG" (antigo)
+]
 _ADASA_WABI_BASE  = "https://wabi-brazil-south-api.analysis.windows.net"
-_ADASA_MODEL_ID   = 4745099
 
 # Barragens que compõem o sistema de abastecimento do DF
 # Capacidade em HM³ (fonte: CAESB) — usada para ponderação
@@ -301,22 +332,19 @@ _ADASA_RESERV_MAP = {
 }
 
 
-def _adasa_request(body: dict) -> dict:
-    """POST ao WABI da ADASA com suporte a gzip."""
-    headers = {
+def _adasa_headers(key: str) -> dict:
+    return {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120",
         "Accept": "application/json",
         "Accept-Encoding": "gzip, deflate",
         "Content-Type": "application/json;charset=UTF-8",
-        "X-PowerBI-ResourceKey": _ADASA_REPORT_KEY,
+        "X-PowerBI-ResourceKey": key,
         "Referer": "https://app.powerbi.com/",
         "Origin": "https://app.powerbi.com",
     }
-    data = json.dumps(body).encode()
-    req = urllib.request.Request(
-        f"{_ADASA_WABI_BASE}/public/reports/querydata?synchronous=true",
-        data=data, headers=headers,
-    )
+
+
+def _adasa_read(req) -> dict:
     with urllib.request.urlopen(req, timeout=30) as r:
         raw = r.read()
         if raw[:2] == b"\x1f\x8b":
@@ -324,7 +352,25 @@ def _adasa_request(body: dict) -> dict:
         return json.loads(raw)
 
 
-def _adasa_query_body(row_count: int = 3000) -> dict:
+def _adasa_model_id(key: str) -> int:
+    """Descobre o modelId do relatório público (muda quando a ADASA republica)."""
+    req = urllib.request.Request(
+        f"{_ADASA_WABI_BASE}/public/reports/{key}/modelsAndExploration?preferReadOnlySession=true",
+        headers=_adasa_headers(key),
+    )
+    return int(_adasa_read(req)["models"][0]["id"])
+
+
+def _adasa_request(key: str, body: dict) -> dict:
+    """POST ao WABI da ADASA com suporte a gzip."""
+    req = urllib.request.Request(
+        f"{_ADASA_WABI_BASE}/public/reports/querydata?synchronous=true",
+        data=json.dumps(body).encode(), headers=_adasa_headers(key),
+    )
+    return _adasa_read(req)
+
+
+def _adasa_query_body(key: str, model_id: int, row_count: int = 3000) -> dict:
     return {
         "queries": [{
             "Query": {
@@ -354,12 +400,12 @@ def _adasa_query_body(row_count: int = 3000) -> dict:
             },
             "QueryId": "q1",
             "ApplicationContext": {
-                "DatasetId": _ADASA_REPORT_KEY,
-                "Sources": [{"ReportId": _ADASA_REPORT_KEY}],
+                "DatasetId": key,
+                "Sources": [{"ReportId": key}],
             },
         }],
         "cancelQueries": [],
-        "modelId": _ADASA_MODEL_ID,
+        "modelId": model_id,
     }
 
 
@@ -381,12 +427,15 @@ def _parse_adasa_dsr(result: dict) -> list[tuple[str, str, float]]:
 
     for entry in dm0:
         c = entry.get("C", [])
-        r = entry.get("R", 0)
+        r = entry.get("R", 0)       # bitmask: coluna repete o valor da linha anterior
+        nulo = entry.get("Ø", 0)    # bitmask: coluna é nula nesta linha (não consome item de C)
 
         vals = list(prev)
         ci = 0
         for col_idx in range(3):
-            if not (r & (1 << col_idx)):
+            if nulo & (1 << col_idx):
+                vals[col_idx] = None
+            elif not (r & (1 << col_idx)):
                 if ci < len(c):
                     vals[col_idx] = c[ci]
                     ci += 1
@@ -408,12 +457,18 @@ def fetch_caesb_adasa() -> dict | None:
     Não requer Playwright — usa apenas requests/urllib.
     Retorna: {"volume_pct": float, "reservatorios": [...], "historico_multi": {data: pct}}
     """
-    try:
-        result = _adasa_request(_adasa_query_body(row_count=3000))
-        rows   = _parse_adasa_dsr(result)
-    except Exception as e:
-        print(f"  ADASA API erro: {e}", file=sys.stderr)
-        return None
+    rows: list[tuple[str, str, float]] = []
+    for key in _ADASA_REPORT_KEYS:
+        try:
+            model_id = _adasa_model_id(key)
+            cand = _parse_adasa_dsr(_adasa_request(key, _adasa_query_body(key, model_id, row_count=3000)))
+        except Exception as e:
+            print(f"  ADASA relatório {key[:8]} erro: {e}", file=sys.stderr)
+            continue
+        ultima = max((d for n, d, _ in cand if n in _ADASA_RESERV_MAP), default="")
+        print(f"  ADASA relatório {key[:8]} (modelo {model_id}): último dado {ultima or 'nenhum'}")
+        if ultima > max((d for n, d, _ in rows if n in _ADASA_RESERV_MAP), default=""):
+            rows = cand
 
     if not rows:
         print("  ADASA: DSR vazio", file=sys.stderr)
@@ -807,6 +862,11 @@ def main():
         hist = update_historico(ex.get("historico", []), hist_new, today_str)
         updated_at = caesb.get("updated_at") or today_str
         print(f"  DF histórico: {len(hist)} dias")
+        if hist and updated_at not in {h["data"] for h in hist} and ex:
+            # O dado do dia foi descartado como pico: mantém o último valor bom
+            print("  Dado do dia inconsistente — mantendo o anterior.", file=sys.stderr)
+            caesb = {**caesb, "volume_pct": ex.get("volume_pct"), "reservatorios": ex.get("reservatorios", [])}
+            updated_at = ex.get("updated_at") or hist[-1]["data"]
         output_sistemas.append({
             "id":           "df",
             "abbreviation": "DF",
