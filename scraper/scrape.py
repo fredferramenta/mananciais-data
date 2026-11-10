@@ -311,6 +311,77 @@ def fetch_copasa(today_str: str) -> dict | None:
 
 
 # ---------------------------------------------------------------------------
+# RM BH — ANA / SAR (Sistema de Acompanhamento de Reservatórios)
+# ---------------------------------------------------------------------------
+# O site da COPASA recusa conexões de fora do Brasil (o GitHub Actions dá timeout).
+# A ANA publica os mesmos três reservatórios do Sistema Paraopeba, com volume diário
+# em hm³ e a capacidade de cada um, desde 2022.
+
+_ANA_API = "https://www.ana.gov.br/sar/restportal/api/retornaGrafico?codigo={}"
+_ANA_PARAOPEBA = {
+    50001: ("rio_manso",         "Rio Manso"),
+    50003: ("serra_azul",        "Serra Azul"),
+    50002: ("vargem_das_flores", "Vargem das Flores"),
+}
+
+
+def _ana_serie(codigo: int) -> tuple[float, dict[str, float]]:
+    """Devolve (capacidade_hm3, {YYYY-MM-DD: volume_hm3}) de um reservatório do SAR."""
+    resp = requests.get(_ANA_API.format(codigo), headers={"User-Agent": "Mozilla/5.0"}, timeout=40)
+    resp.raise_for_status()
+    d = resp.json()
+    cap = float(d["capacidade"])
+    serie: dict[str, float] = {}
+    for i, ano in enumerate(d.get("listaAno", []), start=1):
+        for p in d.get(f"serie{i}", []):
+            try:
+                v = float(p["volume"])
+            except (TypeError, ValueError):
+                continue
+            if v != v or v < 0:      # NaN ou negativo
+                continue
+            mes, dia = p["data"].split("-")
+            serie[f"{int(ano):04d}-{mes}-{dia}"] = v
+    return cap, serie
+
+
+def fetch_ana_paraopeba() -> dict | None:
+    """
+    Sistema Paraopeba pela ANA: % do sistema = Σ volume ÷ Σ capacidade, nos dias em que
+    os três reservatórios têm dado. Retorna o mesmo formato de fetch_copasa.
+    """
+    try:
+        dados = {cod: _ana_serie(cod) for cod in _ANA_PARAOPEBA}
+    except Exception as e:
+        print(f"  ANA erro: {e}", file=sys.stderr)
+        return None
+
+    cap_total = sum(cap for cap, _ in dados.values())
+    datas = set.intersection(*[set(s.keys()) for _, s in dados.values()])
+    if not datas or cap_total <= 0:
+        print("  ANA: sem datas comuns aos três reservatórios", file=sys.stderr)
+        return None
+
+    historico = {
+        d: round(min(100.0, sum(s[d] for _, s in dados.values()) / cap_total * 100), 2)
+        for d in datas
+    }
+    ultima = max(datas)
+    reservatorios = [
+        {"id": slug, "nome": nome, "volume_pct": round(min(100.0, dados[cod][1][ultima] / dados[cod][0] * 100), 1)}
+        for cod, (slug, nome) in _ANA_PARAOPEBA.items()
+    ]
+    print(f"  ANA: {historico[ultima]:.1f}% em {ultima} | {len(historico)} dias de série")
+    return {
+        "volume_pct": historico[ultima],
+        "updated_at": ultima,
+        "reservatorios": reservatorios,
+        "historico_multi": historico,
+        "fonte": "ANA",
+    }
+
+
+# ---------------------------------------------------------------------------
 # CAESB (Distrito Federal) — ADASA PowerBI direto (sem Playwright)
 # ---------------------------------------------------------------------------
 
@@ -821,7 +892,15 @@ def main():
     # ── COPASA / RM BH ──────────────────────────────────────────────────────
     print("\n→ COPASA (RM Belo Horizonte)…")
     ex = find_sistema(existing, "rmbh")
-    copasa = fetch_copasa(today_str)
+    # ANA primeiro: acessível de qualquer país e com série desde 2022 (a mesma régua para
+    # o valor do dia e para o histórico). A COPASA fica de reserva — só responde do Brasil.
+    copasa = fetch_ana_paraopeba()
+    if copasa:
+        # Série inteira da ANA substitui o histórico antigo (era COPASA, com outra base de capacidade)
+        ex = {**ex, "historico": []}
+    else:
+        print("  ANA indisponível — tentando COPASA…")
+        copasa = fetch_copasa(today_str)
     if copasa:
         hist = update_historico(ex.get("historico", []), copasa["historico_multi"], today_str)
         # updated_at = data real do dado da COPASA (não a data do run)
@@ -831,7 +910,7 @@ def main():
             "id":           "rmbh",
             "abbreviation": "BH",
             "nome":         "RM Belo Horizonte",
-            "empresa":      "COPASA",
+            "empresa":      "COPASA" + (" / ANA" if copasa.get("fonte") == "ANA" else ""),
             "volume_pct":   copasa["volume_pct"],
             "updated_at":   bh_updated,
             "reservatorios": copasa["reservatorios"],

@@ -9,7 +9,7 @@ import os
 from datetime import date
 from pathlib import Path
 
-LIMITE_DIAS = {"rmsp": 4, "rmbh": 7, "df": 21}  # ADASA publica com atraso de algumas semanas
+LIMITE_DIAS = {"rmsp": 4, "rmbh": 7, "df": 7}
 
 dados = json.loads((Path(__file__).parent.parent / "data" / "reservatorios.json").read_text(encoding="utf-8"))
 hoje = date.today()
