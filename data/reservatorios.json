@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-09",
+  "updated_at": "2026-11-10",
   "version": 1,
   "sistemas": [
     {
@@ -2978,23 +2978,23 @@
       "abbreviation": "BH",
       "nome": "RM Belo Horizonte",
       "empresa": "COPASA",
-      "volume_pct": 71.0,
-      "updated_at": "2026-10-17",
+      "volume_pct": 72.0,
+      "updated_at": "2026-11-09",
       "reservatorios": [
         {
           "id": "rio_manso",
           "nome": "Rio Manso",
-          "volume_pct": 87.0
+          "volume_pct": 88.6
         },
         {
           "id": "serra_azul",
           "nome": "Serra Azul",
-          "volume_pct": 42.3
+          "volume_pct": 40.1
         },
         {
           "id": "vargem_das_flores",
           "nome": "Vargem das Flores",
-          "volume_pct": 74.6
+          "volume_pct": 80.5
         }
       ],
       "historico": [
@@ -3341,6 +3341,18 @@
         {
           "data": "2026-10-17",
           "volume_pct": 71.0
+        },
+        {
+          "data": "2026-11-07",
+          "volume_pct": 71.2
+        },
+        {
+          "data": "2026-11-08",
+          "volume_pct": 71.7
+        },
+        {
+          "data": "2026-11-09",
+          "volume_pct": 72.0
         }
       ]
     },
@@ -3349,25 +3361,21 @@
       "abbreviation": "DF",
       "nome": "Distrito Federal",
       "empresa": "CAESB / ADASA",
-      "volume_pct": 59.56,
-      "updated_at": "2026-09-28",
+      "volume_pct": 77.22,
+      "updated_at": "2026-11-09",
       "reservatorios": [
         {
           "id": "descoberto",
           "nome": "Descoberto",
-          "volume_pct": 77.44
+          "volume_pct": 73.09
         },
         {
           "id": "santa_maria",
           "nome": "Santa Maria",
-          "volume_pct": 41.32
+          "volume_pct": 81.44
         }
       ],
       "historico": [
-        {
-          "data": "2024-11-09",
-          "volume_pct": 57.8
-        },
         {
           "data": "2024-11-10",
           "volume_pct": 57.96
@@ -6030,7 +6038,171 @@
         },
         {
           "data": "2026-09-28",
-          "volume_pct": 59.56
+          "volume_pct": 81.92
+        },
+        {
+          "data": "2026-09-30",
+          "volume_pct": 81.26
+        },
+        {
+          "data": "2026-10-01",
+          "volume_pct": 80.98
+        },
+        {
+          "data": "2026-10-02",
+          "volume_pct": 80.65
+        },
+        {
+          "data": "2026-10-03",
+          "volume_pct": 80.63
+        },
+        {
+          "data": "2026-10-04",
+          "volume_pct": 80.37
+        },
+        {
+          "data": "2026-10-05",
+          "volume_pct": 80.78
+        },
+        {
+          "data": "2026-10-06",
+          "volume_pct": 80.8
+        },
+        {
+          "data": "2026-10-07",
+          "volume_pct": 80.61
+        },
+        {
+          "data": "2026-10-08",
+          "volume_pct": 80.34
+        },
+        {
+          "data": "2026-10-09",
+          "volume_pct": 79.95
+        },
+        {
+          "data": "2026-10-10",
+          "volume_pct": 79.62
+        },
+        {
+          "data": "2026-10-11",
+          "volume_pct": 79.36
+        },
+        {
+          "data": "2026-10-12",
+          "volume_pct": 79.15
+        },
+        {
+          "data": "2026-10-13",
+          "volume_pct": 78.82
+        },
+        {
+          "data": "2026-10-14",
+          "volume_pct": 78.55
+        },
+        {
+          "data": "2026-10-15",
+          "volume_pct": 78.85
+        },
+        {
+          "data": "2026-10-16",
+          "volume_pct": 78.79
+        },
+        {
+          "data": "2026-10-17",
+          "volume_pct": 78.73
+        },
+        {
+          "data": "2026-10-18",
+          "volume_pct": 78.68
+        },
+        {
+          "data": "2026-10-19",
+          "volume_pct": 78.54
+        },
+        {
+          "data": "2026-10-20",
+          "volume_pct": 78.33
+        },
+        {
+          "data": "2026-10-21",
+          "volume_pct": 78.01
+        },
+        {
+          "data": "2026-10-22",
+          "volume_pct": 77.68
+        },
+        {
+          "data": "2026-10-23",
+          "volume_pct": 77.46
+        },
+        {
+          "data": "2026-10-24",
+          "volume_pct": 77.41
+        },
+        {
+          "data": "2026-10-25",
+          "volume_pct": 77.07
+        },
+        {
+          "data": "2026-10-26",
+          "volume_pct": 77.01
+        },
+        {
+          "data": "2026-10-27",
+          "volume_pct": 76.79
+        },
+        {
+          "data": "2026-10-28",
+          "volume_pct": 77.02
+        },
+        {
+          "data": "2026-10-29",
+          "volume_pct": 77.04
+        },
+        {
+          "data": "2026-10-30",
+          "volume_pct": 76.99
+        },
+        {
+          "data": "2026-10-31",
+          "volume_pct": 76.95
+        },
+        {
+          "data": "2026-11-01",
+          "volume_pct": 77.39
+        },
+        {
+          "data": "2026-11-02",
+          "volume_pct": 77.27
+        },
+        {
+          "data": "2026-11-03",
+          "volume_pct": 77.44
+        },
+        {
+          "data": "2026-11-04",
+          "volume_pct": 77.54
+        },
+        {
+          "data": "2026-11-05",
+          "volume_pct": 77.55
+        },
+        {
+          "data": "2026-11-06",
+          "volume_pct": 77.75
+        },
+        {
+          "data": "2026-11-07",
+          "volume_pct": 77.44
+        },
+        {
+          "data": "2026-11-08",
+          "volume_pct": 77.47
+        },
+        {
+          "data": "2026-11-09",
+          "volume_pct": 77.22
         }
       ]
     }
