@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-17",
+  "updated_at": "2026-11-18",
   "version": 1,
   "sistemas": [
     {
@@ -7,18 +7,18 @@
       "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
-      "volume_pct": 65.53,
-      "updated_at": "2026-11-17",
+      "volume_pct": 65.74,
+      "updated_at": "2026-11-18",
       "reservatorios": [
         {
           "id": "cantareira",
           "nome": "Cantareira",
-          "volume_pct": 56.27
+          "volume_pct": 56.5
         },
         {
           "id": "alto_tiete",
           "nome": "Alto Tietê",
-          "volume_pct": 64.63
+          "volume_pct": 64.97
         },
         {
           "id": "guarapiranga",
@@ -28,29 +28,25 @@
         {
           "id": "cotia",
           "nome": "Cotia",
-          "volume_pct": 102.08
+          "volume_pct": 102.01
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
-          "volume_pct": 98.11
+          "volume_pct": 98.21
         },
         {
           "id": "rio_claro",
           "nome": "Rio Claro",
-          "volume_pct": 60.62
+          "volume_pct": 59.94
         },
         {
           "id": "sao_lourenço",
           "nome": "São Lourenço",
-          "volume_pct": 79.23
+          "volume_pct": 79.24
         }
       ],
       "historico": [
-        {
-          "data": "2024-11-17",
-          "volume_pct": 46.08
-        },
         {
           "data": "2024-11-18",
           "volume_pct": 46.01
@@ -2970,6 +2966,10 @@
         {
           "data": "2026-11-17",
           "volume_pct": 65.53
+        },
+        {
+          "data": "2026-11-18",
+          "volume_pct": 65.74
         }
       ]
     },
@@ -2998,10 +2998,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-11-17",
-          "volume_pct": 54.06
-        },
         {
           "data": "2024-11-18",
           "volume_pct": 54.26
@@ -5921,13 +5917,13 @@
       "abbreviation": "DF",
       "nome": "Distrito Federal",
       "empresa": "CAESB / ADASA",
-      "volume_pct": 76.98,
-      "updated_at": "2026-11-17",
+      "volume_pct": 77.22,
+      "updated_at": "2026-11-18",
       "reservatorios": [
         {
           "id": "descoberto",
           "nome": "Descoberto",
-          "volume_pct": 73.4
+          "volume_pct": 73.86
         },
         {
           "id": "santa_maria",
@@ -5936,10 +5932,6 @@
         }
       ],
       "historico": [
-        {
-          "data": "2024-11-17",
-          "volume_pct": 64.2
-        },
         {
           "data": "2024-11-18",
           "volume_pct": 64.92
@@ -8766,7 +8758,11 @@
         },
         {
           "data": "2026-11-17",
-          "volume_pct": 76.98
+          "volume_pct": 77.06
+        },
+        {
+          "data": "2026-11-18",
+          "volume_pct": 77.22
         }
       ]
     }
