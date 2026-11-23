@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-22",
+  "updated_at": "2026-11-23",
   "version": 1,
   "sistemas": [
     {
@@ -7,50 +7,46 @@
       "abbreviation": "SP",
       "nome": "RM São Paulo",
       "empresa": "SABESP",
-      "volume_pct": 66.64,
-      "updated_at": "2026-11-22",
+      "volume_pct": 66.97,
+      "updated_at": "2026-11-23",
       "reservatorios": [
         {
           "id": "cantareira",
           "nome": "Cantareira",
-          "volume_pct": 57.63
+          "volume_pct": 57.82
         },
         {
           "id": "alto_tiete",
           "nome": "Alto Tietê",
-          "volume_pct": 66.23
+          "volume_pct": 66.45
         },
         {
           "id": "guarapiranga",
           "nome": "Guarapiranga",
-          "volume_pct": 90.08
+          "volume_pct": 91.17
         },
         {
           "id": "cotia",
           "nome": "Cotia",
-          "volume_pct": 102.31
+          "volume_pct": 102.68
         },
         {
           "id": "rio_grande",
           "nome": "Rio Grande",
-          "volume_pct": 97.96
+          "volume_pct": 98.51
         },
         {
           "id": "rio_claro",
           "nome": "Rio Claro",
-          "volume_pct": 57.69
+          "volume_pct": 57.67
         },
         {
           "id": "sao_lourenço",
           "nome": "São Lourenço",
-          "volume_pct": 78.97
+          "volume_pct": 79.83
         }
       ],
       "historico": [
-        {
-          "data": "2024-11-22",
-          "volume_pct": 45.4
-        },
         {
           "data": "2024-11-23",
           "volume_pct": 45.26
@@ -2970,6 +2966,10 @@
         {
           "data": "2026-11-22",
           "volume_pct": 66.64
+        },
+        {
+          "data": "2026-11-23",
+          "volume_pct": 66.97
         }
       ]
     },
@@ -2978,30 +2978,26 @@
       "abbreviation": "BH",
       "nome": "RM Belo Horizonte",
       "empresa": "COPASA / ANA",
-      "volume_pct": 73.92,
-      "updated_at": "2026-11-16",
+      "volume_pct": 78.54,
+      "updated_at": "2026-11-23",
       "reservatorios": [
         {
           "id": "rio_manso",
           "nome": "Rio Manso",
-          "volume_pct": 90.6
+          "volume_pct": 96.7
         },
         {
           "id": "serra_azul",
           "nome": "Serra Azul",
-          "volume_pct": 41.3
+          "volume_pct": 41.8
         },
         {
           "id": "vargem_das_flores",
           "nome": "Vargem das Flores",
-          "volume_pct": 83.9
+          "volume_pct": 92.1
         }
       ],
       "historico": [
-        {
-          "data": "2024-11-22",
-          "volume_pct": 55.85
-        },
         {
           "data": "2024-11-23",
           "volume_pct": 55.98
@@ -5893,6 +5889,34 @@
         {
           "data": "2026-11-16",
           "volume_pct": 73.92
+        },
+        {
+          "data": "2026-11-17",
+          "volume_pct": 74.39
+        },
+        {
+          "data": "2026-11-18",
+          "volume_pct": 74.93
+        },
+        {
+          "data": "2026-11-19",
+          "volume_pct": 75.81
+        },
+        {
+          "data": "2026-11-20",
+          "volume_pct": 76.63
+        },
+        {
+          "data": "2026-11-21",
+          "volume_pct": 77.44
+        },
+        {
+          "data": "2026-11-22",
+          "volume_pct": 78.33
+        },
+        {
+          "data": "2026-11-23",
+          "volume_pct": 78.54
         }
       ]
     },
@@ -5901,25 +5925,21 @@
       "abbreviation": "DF",
       "nome": "Distrito Federal",
       "empresa": "CAESB / ADASA",
-      "volume_pct": 77.56,
-      "updated_at": "2026-11-22",
+      "volume_pct": 77.77,
+      "updated_at": "2026-11-23",
       "reservatorios": [
         {
           "id": "descoberto",
           "nome": "Descoberto",
-          "volume_pct": 74.89
+          "volume_pct": 75.2
         },
         {
           "id": "santa_maria",
           "nome": "Santa Maria",
-          "volume_pct": 80.28
+          "volume_pct": 80.4
         }
       ],
       "historico": [
-        {
-          "data": "2024-11-22",
-          "volume_pct": 71.04
-        },
         {
           "data": "2024-11-23",
           "volume_pct": 72.05
@@ -8746,7 +8766,11 @@
         },
         {
           "data": "2026-11-22",
-          "volume_pct": 77.56
+          "volume_pct": 77.69
+        },
+        {
+          "data": "2026-11-23",
+          "volume_pct": 77.77
         }
       ]
     }
